@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ML model files (too large for git)
+/model-output/
+/yc-match-scorer-merged/
+/yc-match-scorer/
+/data/train.jsonl
+/data/val.jsonl
+/unsloth_compiled_cache/
+*.safetensors
+*.pt
+*.pth
+*.bin
+run.log
+
+# benchmark artifacts
+/benchmark-labels.json
+/benchmark-report.json
+
+# fonts build cache
+public/fonts/.next/

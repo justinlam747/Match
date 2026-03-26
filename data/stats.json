@@ -1,0 +1,11 @@
+{
+  "total_examples": 6373,
+  "train_examples": 5735,
+  "val_examples": 638,
+  "sources": {
+    "ats_score_dataset": "0xnbk/resume-ats-score-v1-en",
+    "detail_dataset": "netsol/resume-score-details"
+  },
+  "format": "chat-completion JSONL (system + user + assistant messages)",
+  "license": "Apache 2.0"
+}
