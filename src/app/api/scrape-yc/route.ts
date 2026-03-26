@@ -5,6 +5,7 @@ import { ycCompanies } from "@/lib/db/schema";
 import { eq, isNull, or, sql } from "drizzle-orm";
 import { inferTechStack } from "@/lib/ai/enrich-tech";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export const maxDuration = 300; // 5 min for Vercel
 
@@ -54,6 +55,13 @@ export async function POST(request: NextRequest) {
         );
       }
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "companies.scraped",
+      entityType: "ycCompany",
+      metadata: { batches, companiesScraped: results, enriched },
+    });
 
     return NextResponse.json({
       message: "Scraping complete",

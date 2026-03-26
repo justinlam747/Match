@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { searchPeopleAtCompany, enrichPerson } from "@/lib/contacts/apollo";
 import { verifyEmail, domainSearch } from "@/lib/contacts/hunter";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,6 +109,14 @@ export async function POST(request: NextRequest) {
       // Rate limit between companies
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
+
+    const totalContacts = results.reduce((sum, r) => sum + r.contacts, 0);
+    await logAuditEvent({
+      userId: user.id,
+      action: "contacts.found",
+      entityType: "contact",
+      metadata: { companiesSearched: companyIds.length, contactsFound: totalContacts },
+    });
 
     return NextResponse.json({
       message: "Contact search complete",

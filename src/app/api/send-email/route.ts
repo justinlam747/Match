@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { sendEmail } from "@/lib/email/sender";
 import { canSendToday } from "@/lib/email/throttle";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,6 +80,14 @@ export async function POST(request: NextRequest) {
           body: email.body,
         });
         results.push({ emailId, success: true });
+
+        await logAuditEvent({
+          userId: user.id,
+          action: "email.sent",
+          entityType: "email",
+          entityId: emailId,
+          metadata: { to: contact.email, subject: email.subject },
+        });
       } catch (err) {
         results.push({
           emailId,

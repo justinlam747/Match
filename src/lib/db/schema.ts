@@ -101,6 +101,33 @@ export const emails = pgTable("emails", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const auditActionEnum = pgEnum("audit_action", [
+  "resume.uploaded",
+  "resume.parsed",
+  "companies.scraped",
+  "companies.enriched",
+  "matches.scored",
+  "contacts.found",
+  "email.drafted",
+  "email.edited",
+  "email.sent",
+  "email.opened",
+  "email.bounced",
+  "email.complained",
+  "user.signed_in",
+  "user.signed_out",
+]);
+
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  action: auditActionEnum("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Types
 
 export interface ParsedResume {

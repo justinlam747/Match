@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { emails } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export async function PATCH(
   request: NextRequest,
@@ -24,6 +25,13 @@ export async function PATCH(
         status: "edited",
       })
       .where(and(eq(emails.id, id), eq(emails.userId, user.id)));
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "email.edited",
+      entityType: "email",
+      entityId: id,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

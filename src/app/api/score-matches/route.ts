@@ -4,6 +4,7 @@ import { resumes, ycCompanies, matchScores } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { scoreMatchesBatch } from "@/lib/ai/score-match";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,6 +73,13 @@ export async function POST(request: NextRequest) {
         explanation: result.explanation,
       });
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "matches.scored",
+      entityType: "matchScore",
+      metadata: { resumeId, companiesScored: results.length },
+    });
 
     return NextResponse.json({
       message: `Scored ${results.length} companies`,

@@ -3,6 +3,7 @@ import { parseResume } from "@/lib/ai/parse-resume";
 import { db } from "@/lib/db";
 import { resumes } from "@/lib/db/schema";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   // Dynamic require to handle pdf-parse ESM/CJS compat
@@ -51,6 +52,14 @@ export async function POST(request: NextRequest) {
         parsedData,
       })
       .returning();
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "resume.uploaded",
+      entityType: "resume",
+      entityId: resume.id,
+      metadata: { fileName: file.name, textLength: rawText.length },
+    });
 
     return NextResponse.json({
       id: resume.id,

@@ -25,6 +25,7 @@ const links = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/matches", label: "Matches" },
   { href: "/emails", label: "Emails" },
+  { href: "/audit", label: "Audit" },
 ];
 
 export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {

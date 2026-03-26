@@ -10,6 +10,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { draftEmail } from "@/lib/ai/draft-email";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { logAuditEvent } from "@/lib/audit/log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,6 +111,13 @@ export async function POST(request: NextRequest) {
 
       drafted.push(companyId);
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "email.drafted",
+      entityType: "email",
+      metadata: { resumeId, companiesDrafted: drafted.length, companyIds: drafted },
+    });
 
     return NextResponse.json({
       message: `Drafted ${drafted.length} emails`,
