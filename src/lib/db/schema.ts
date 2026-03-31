@@ -8,7 +8,21 @@ import {
   integer,
   boolean,
   pgEnum,
+  customType,
+  index,
 } from "drizzle-orm/pg-core";
+
+const vector = customType<{ data: number[]; driverData: string }>({
+  dataType() {
+    return "vector(1536)";
+  },
+  toDriver(value: number[]) {
+    return `[${value.join(",")}]`;
+  },
+  fromDriver(value: string) {
+    return JSON.parse(value) as number[];
+  },
+});
 
 export const emailStatusEnum = pgEnum("email_status", [
   "draft",
@@ -25,16 +39,40 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const docTypeEnum = pgEnum("doc_type", [
+  "resume",
+  "portfolio",
+  "github",
+  "linkedin",
+  "website",
+  "other",
+]);
+
+export const documents = pgTable("documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  type: docTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  sourceUrl: text("source_url"),
+  rawText: text("raw_text").notNull(),
+  extractedData: jsonb("extracted_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [index("documents_user_id_idx").on(t.userId)]);
+
 export const resumes = pgTable("resumes", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .references(() => users.id)
     .notNull(),
+  name: text("name").notNull().default("Untitled Resume"),
   rawText: text("raw_text").notNull(),
   parsedData: jsonb("parsed_data").$type<ParsedResume>(),
   fileUrl: text("file_url"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [index("resumes_user_id_idx").on(t.userId)]);
 
 export const ycCompanies = pgTable("yc_companies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -42,15 +80,33 @@ export const ycCompanies = pgTable("yc_companies", {
   slug: text("slug").unique().notNull(),
   batch: text("batch"),
   description: text("description"),
+  oneLiner: text("one_liner"),
+  longDescription: text("long_description"),
   industries: text("industries").array(),
+  tags: text("tags").array(),
   techStack: text("tech_stack").array(),
   stage: text("stage"),
+  status: text("status"),
   teamSize: integer("team_size"),
   website: text("website"),
   ycUrl: text("yc_url"),
+  logoUrl: text("logo_url"),
+  location: text("location"),
+  isHiring: boolean("is_hiring").default(false),
+  isTopCompany: boolean("is_top_company").default(false),
   hiringSignals: jsonb("hiring_signals").$type<HiringSignals>(),
-  lastScraped: timestamp("last_scraped"),
+  embedding: vector("embedding"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const resumeEmbeddings = pgTable("resume_embeddings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  resumeId: uuid("resume_id")
+    .references(() => resumes.id)
+    .notNull(),
+  embedding: vector("embedding"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [index("resume_embeddings_resume_id_idx").on(t.resumeId)]);
 
 export const contacts = pgTable("contacts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -64,7 +120,7 @@ export const contacts = pgTable("contacts", {
   source: text("source"),
   linkedinUrl: text("linkedin_url"),
   foundAt: timestamp("found_at").defaultNow(),
-});
+}, (t) => [index("contacts_company_id_idx").on(t.companyId)]);
 
 export const matchScores = pgTable("match_scores", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -81,6 +137,44 @@ export const matchScores = pgTable("match_scores", {
   hiringScore: real("hiring_score").notNull(),
   explanation: text("explanation"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("match_scores_resume_id_idx").on(t.resumeId),
+  index("match_scores_company_id_idx").on(t.companyId),
+]);
+
+export const aiProviderEnum = pgEnum("ai_provider", ["anthropic", "openai"]);
+
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  provider: aiProviderEnum("provider").notNull(),
+  encryptedKey: text("encrypted_key").notNull(),
+  keyHint: text("key_hint").notNull(), // e.g. "sk-ant-...7x2f"
+  iv: text("iv").notNull(),
+  authTag: text("auth_tag").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const emailProviderEnum = pgEnum("email_provider", ["gmail", "outlook"]);
+
+export const emailConnections = pgTable("email_connections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  provider: emailProviderEnum("provider").notNull(),
+  emailAddress: text("email_address").notNull(),
+  accessTokenEnc: text("access_token_enc").notNull(),
+  accessTokenIv: text("access_token_iv").notNull(),
+  accessTokenTag: text("access_token_tag").notNull(),
+  refreshTokenEnc: text("refresh_token_enc").notNull(),
+  refreshTokenIv: text("refresh_token_iv").notNull(),
+  refreshTokenTag: text("refresh_token_tag").notNull(),
+  tokenExpiresAt: timestamp("token_expires_at").notNull(),
+  connectedAt: timestamp("connected_at").defaultNow().notNull(),
 });
 
 export const emails = pgTable("emails", {
@@ -99,9 +193,47 @@ export const emails = pgTable("emails", {
   sentAt: timestamp("sent_at"),
   openedAt: timestamp("opened_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("emails_user_id_idx").on(t.userId),
+  index("emails_contact_id_idx").on(t.contactId),
+]);
+
+export const userPreferences = pgTable("user_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull()
+    .unique(),
+  theme: text("theme").default("system").notNull(), // "light" | "dark" | "system"
+  emailTone: text("email_tone").default("professional").notNull(), // "professional" | "casual" | "friendly"
+  minMatchScore: real("min_match_score").default(0.5).notNull(),
+  notifyOnNewMatches: boolean("notify_on_new_matches").default(true).notNull(),
+  notifyOnEmailReplies: boolean("notify_on_email_replies").default(true).notNull(),
+  preferredProvider: aiProviderEnum("preferred_provider"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userConfig = pgTable("user_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull()
+    .unique(),
+  emailsPerDay: integer("emails_per_day").default(20).notNull(),
+  apiCallsPerHour: integer("api_calls_per_hour").default(60).notNull(),
+  maxResumes: integer("max_resumes").default(5).notNull(),
+  maxMatchesPerScan: integer("max_matches_per_scan").default(50).notNull(),
+  featureFlags: jsonb("feature_flags").$type<FeatureFlags>().default({}),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Types
+
+export interface FeatureFlags {
+  betaScoring?: boolean;
+  bulkEmail?: boolean;
+  advancedFilters?: boolean;
+}
 
 export interface ParsedResume {
   name: string;
