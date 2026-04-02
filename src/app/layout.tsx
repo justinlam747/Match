@@ -11,19 +11,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "YC Match — Find your perfect YC company match",
-    template: "%s | YC Match",
+    default: "Match",
+    template: "Match | %s",
   },
   description:
-    "Upload your resume, get AI-scored matches against Y Combinator startups, and send personalized cold emails.",
+    "Upload your resume, get AI-scored matches against top startups, and send personalized cold emails.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "YC Match — Find your perfect YC company match",
+    title: "Match — Find your perfect startup match",
     description:
-      "Upload your resume, get AI-scored matches against Y Combinator startups, and send personalized cold emails.",
+      "Upload your resume, get AI-scored matches against top startups, and send personalized cold emails.",
     type: "website",
   },
 };

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SendQueue } from "@/components/send-queue";
 import type { EmailData } from "@/components/email-editor";
+import { GmailConnect } from "@/components/gmail-connect";
 import { toast } from "sonner";
 
 interface EmailStatus {
@@ -18,6 +19,18 @@ export default function EmailsPage() {
   const [emails, setEmails] = useState<EmailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [emailStatus, setEmailStatus] = useState<EmailStatus | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gmailStatus = params.get("gmail");
+    if (gmailStatus === "connected") {
+      toast.success("Gmail connected successfully");
+      window.history.replaceState({}, "", "/emails");
+    } else if (gmailStatus === "error") {
+      toast.error("Failed to connect Gmail");
+      window.history.replaceState({}, "", "/emails");
+    }
+  }, []);
 
   useEffect(() => {
     async function loadEmails() {
@@ -106,7 +119,7 @@ export default function EmailsPage() {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
+    <div className="space-y-5">
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Emails</h1>
@@ -120,6 +133,9 @@ export default function EmailsPage() {
           </Badge>
         )}
       </div>
+
+      {/* Gmail connection */}
+      <GmailConnect />
 
       {/* Warm-up status */}
       {emailStatus && (

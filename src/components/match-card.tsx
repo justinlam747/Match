@@ -2,15 +2,22 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScoreBreakdown } from "@/components/score-breakdown";
+import { CompanyLogo } from "@/components/company-logo";
 
 export interface MatchData {
   companyId: string;
   companyName: string;
   batch: string | null;
   description: string | null;
+  longDescription: string | null;
   industries: string[];
   techStack: string[];
+  logoUrl: string | null;
+  website: string | null;
+  location: string | null;
+  stage: string | null;
+  isHiring: boolean;
+  teamSize: number | null;
   overallScore: number;
   techScore: number;
   industryScore: number;
@@ -26,6 +33,13 @@ interface MatchCardProps {
   onViewDetail?: (match: MatchData) => void;
 }
 
+function scoreColor(score: number): string {
+  if (score >= 75) return "text-green-600";
+  if (score >= 50) return "text-primary";
+  if (score >= 30) return "text-yellow-600";
+  return "text-muted-foreground";
+}
+
 export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProps) {
   return (
     <Card
@@ -37,32 +51,48 @@ export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProp
       onClick={() => onToggleSelect(match.companyId)}
     >
       <CardContent className="p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+        {/* Header with logo */}
+        <div className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={match.selected}
+            onChange={() => onToggleSelect(match.companyId)}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-1 h-3.5 w-3.5 accent-primary shrink-0"
+          />
+
+          <CompanyLogo logoUrl={match.logoUrl} companyName={match.companyName} size="sm" />
+
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={match.selected}
-                onChange={() => onToggleSelect(match.companyId)}
-                onClick={(e) => e.stopPropagation()}
-                className="h-3.5 w-3.5 rounded accent-primary"
-              />
-              <h3 className="font-medium text-sm truncate">
-                {match.companyName}
-              </h3>
+              <h3 className="font-medium text-sm truncate">{match.companyName}</h3>
+              {match.isHiring && (
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" title="Hiring" />
+              )}
             </div>
-            {match.batch && (
-              <span className="text-xs text-muted-foreground ml-5.5">
-                YC {match.batch}
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {match.batch && (
+                <span className="text-[11px] text-muted-foreground">{match.batch}</span>
+              )}
+              {match.batch && match.stage && (
+                <span className="text-muted-foreground/40">·</span>
+              )}
+              {match.stage && (
+                <span className="text-[11px] text-muted-foreground">{match.stage}</span>
+              )}
+              {match.teamSize && (
+                <>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span className="text-[11px] text-muted-foreground">{match.teamSize} people</span>
+                </>
+              )}
+            </div>
           </div>
-          {match.overallScore >= 75 && (
-            <Badge variant="default" className="text-[10px] shrink-0">
-              Top match
-            </Badge>
-          )}
+
+          {/* Score */}
+          <div className={`text-lg font-bold tabular-nums shrink-0 ${scoreColor(match.overallScore)}`}>
+            {match.overallScore}
+          </div>
         </div>
 
         {/* Description */}
@@ -72,56 +102,31 @@ export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProp
           </p>
         )}
 
-        {/* Industries */}
-        {match.industries.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {match.industries.slice(0, 3).map((ind) => (
-              <Badge
-                key={ind}
-                variant="secondary"
-                className="text-[11px] font-normal px-1.5 py-0"
-              >
-                {ind}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {/* Tech stack preview */}
-        {match.techStack.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {match.techStack.slice(0, 4).map((tech) => (
-              <Badge
-                key={tech}
-                variant="outline"
-                className="text-[10px] font-normal px-1.5 py-0"
-              >
-                {tech}
-              </Badge>
-            ))}
-            {match.techStack.length > 4 && (
-              <span className="text-[10px] text-muted-foreground">
-                +{match.techStack.length - 4}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Score */}
-        <ScoreBreakdown
-          techScore={match.techScore}
-          industryScore={match.industryScore}
-          hiringScore={match.hiringScore}
-          stageScore={match.stageScore}
-          overall={match.overallScore}
-        />
+        {/* Tags row */}
+        <div className="flex flex-wrap gap-1">
+          {match.industries.slice(0, 2).map((ind) => (
+            <Badge key={ind} variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
+              {ind}
+            </Badge>
+          ))}
+          {match.techStack.slice(0, 3).map((tech) => (
+            <Badge key={tech} variant="outline" className="text-[10px] font-normal px-1.5 py-0">
+              {tech}
+            </Badge>
+          ))}
+          {match.techStack.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{match.techStack.length - 3}
+            </span>
+          )}
+        </div>
 
         {/* Explanation */}
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
           {match.explanation}
         </p>
 
-        {/* View detail */}
+        {/* Footer */}
         {onViewDetail && (
           <button
             onClick={(e) => {

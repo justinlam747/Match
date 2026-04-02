@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign in — YC Match",
-  description: "Sign in with Google to start matching with YC companies.",
+  title: "Sign in",
+  description: "Sign in with Google to start matching with top startups.",
 };
 
 export default function LoginLayout({

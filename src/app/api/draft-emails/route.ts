@@ -10,11 +10,20 @@ import {
 import { eq, and } from "drizzle-orm";
 import { draftEmail } from "@/lib/ai/draft-email";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getApiUser();
     if (!user) return unauthorized();
+
+    const rl = await rateLimit(`draft-emails:${user.id}`, 20, 60);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again later." },
+        { status: 429 }
+      );
+    }
 
     const body = await request.json();
     const { resumeId, companyIds } = body as {
@@ -65,19 +74,19 @@ export async function POST(request: NextRequest) {
         )
         .limit(1);
 
-      // Get contacts for this company
+      // Get best contact if available, otherwise use company info
       const companyContacts = await db
         .select()
         .from(contacts)
         .where(eq(contacts.companyId, companyId));
 
-      if (companyContacts.length === 0) continue;
-
-      // Draft email for the best contact (prefer verified, then by title priority)
       const bestContact =
-        companyContacts.find((c) => c.emailVerified) || companyContacts[0];
+        companyContacts.find((c) => c.emailVerified) ||
+        companyContacts.find((c) => c.email) ||
+        null;
 
-      if (!bestContact.email) continue;
+      const contactName = bestContact?.name || `${company.name} team`;
+      const contactTitle = bestContact?.title || "Founder";
 
       const { subject, body: emailBody } = await draftEmail(
         resume.parsedData,
@@ -88,8 +97,8 @@ export async function POST(request: NextRequest) {
           techStack: company.techStack,
         },
         {
-          name: bestContact.name,
-          title: bestContact.title,
+          name: contactName,
+          title: contactTitle,
         },
         {
           overallScore: score?.overallScore || 50,
@@ -97,10 +106,28 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      // Store the draft
+      // If no contact exists, create a placeholder for the company
+      let contactId: string;
+      if (bestContact) {
+        contactId = bestContact.id;
+      } else {
+        const [placeholder] = await db
+          .insert(contacts)
+          .values({
+            companyId,
+            name: contactName,
+            title: "Founder",
+            email: company.website
+              ? `hello@${new URL(company.website).hostname.replace("www.", "")}`
+              : null,
+          })
+          .returning({ id: contacts.id });
+        contactId = placeholder.id;
+      }
+
       await db.insert(emails).values({
         userId: resume.userId,
-        contactId: bestContact.id,
+        contactId,
         matchScoreId: score?.id || null,
         subject,
         body: emailBody,

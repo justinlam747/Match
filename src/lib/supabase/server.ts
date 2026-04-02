@@ -1,27 +1,33 @@
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function createServerClient() {
+export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        cookie: cookieStore.toString(),
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Can't set cookies in Server Components, only in Route Handlers/Server Actions
+          }
+        },
       },
-    },
-    auth: {
-      flowType: "pkce",
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
+    }
+  );
 }
 
 export async function getSession() {
-  const supabase = await createServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -29,7 +35,7 @@ export async function getSession() {
 }
 
 export async function getUser() {
-  const supabase = await createServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

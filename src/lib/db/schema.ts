@@ -36,6 +36,10 @@ export const emailStatusEnum = pgEnum("email_status", [
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
+  avatarUrl: text("avatar_url"),
+  avatarSource: text("avatar_source"),
+  avatarOptions: jsonb("avatar_options").$type<{ google?: string; linkedin?: string; github?: string }>(),
+  tags: text("tags").array().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -213,6 +217,32 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const agentStatusEnum = pgEnum("agent_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "paused",
+]);
+
+export const agentRuns = pgTable("agent_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentType: text("agent_type").notNull(),
+  userId: text("user_id").notNull(),
+  status: agentStatusEnum("status").default("pending").notNull(),
+  input: jsonb("input").$type<Record<string, unknown>>().default({}),
+  state: jsonb("state").$type<Record<string, unknown>>().default({}),
+  output: jsonb("output").$type<Record<string, unknown>>(),
+  error: text("error"),
+  parentRunId: uuid("parent_run_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (t) => [
+  index("agent_runs_user_id_idx").on(t.userId),
+  index("agent_runs_status_idx").on(t.status),
+  index("agent_runs_parent_run_id_idx").on(t.parentRunId),
+]);
+
 export const userConfig = pgTable("user_config", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
@@ -226,6 +256,25 @@ export const userConfig = pgTable("user_config", {
   featureFlags: jsonb("feature_flags").$type<FeatureFlags>().default({}),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const llmLogs = pgTable("llm_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id"),
+  provider: text("provider").notNull(), // anthropic | openai | groq | local
+  model: text("model").notNull(),
+  endpoint: text("endpoint").notNull(), // chat | embedding | score
+  inputTokens: integer("input_tokens").default(0).notNull(),
+  outputTokens: integer("output_tokens").default(0).notNull(),
+  costCents: real("cost_cents").default(0).notNull(),
+  latencyMs: integer("latency_ms").default(0).notNull(),
+  status: text("status").default("success").notNull(), // success | error
+  error: text("error"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("llm_logs_created_at_idx").on(t.createdAt),
+  index("llm_logs_user_id_idx").on(t.userId),
+]);
 
 // Types
 

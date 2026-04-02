@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { CompanyLogo } from "@/components/company-logo";
 import { ScoreBreakdown } from "@/components/score-breakdown";
 import type { MatchData } from "@/components/match-card";
 import {
@@ -26,17 +27,26 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {match.companyName}
-            {match.batch && (
-              <Badge variant="secondary" className="text-xs font-normal">
-                YC {match.batch}
-              </Badge>
-            )}
-          </DialogTitle>
-          {match.description && (
-            <DialogDescription className="text-sm leading-relaxed">
-              {match.description}
+          <div className="flex items-center gap-3">
+            <CompanyLogo logoUrl={match.logoUrl} companyName={match.companyName} size="md" />
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                {match.companyName}
+                {match.isHiring && (
+                  <Badge variant="default" className="text-[10px]">Hiring</Badge>
+                )}
+              </DialogTitle>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                {match.batch && <span>{match.batch}</span>}
+                {match.stage && <><span>·</span><span>{match.stage}</span></>}
+                {match.teamSize && <><span>·</span><span>{match.teamSize} people</span></>}
+                {match.location && <><span>·</span><span>{match.location}</span></>}
+              </div>
+            </div>
+          </div>
+          {(match.longDescription || match.description) && (
+            <DialogDescription className="text-sm leading-relaxed mt-2">
+              {match.longDescription || match.description}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -96,19 +106,16 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
           <Separator />
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() =>
-                window.open(
-                  `https://www.ycombinator.com/companies?q=${encodeURIComponent(match.companyName)}`,
-                  "_blank"
-                )
-              }
-            >
-              View on YC
-            </Button>
+            {match.website && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => window.open(match.website!, "_blank")}
+              >
+                Visit website
+              </Button>
+            )}
             <Button
               size="sm"
               className="flex-1"

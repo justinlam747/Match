@@ -3,7 +3,7 @@
 interface ScoreBreakdownProps {
   techScore: number;
   industryScore: number;
-  hiringScore: number;
+  hiringScore: number; // now "building signal" — reusing the DB column
   stageScore: number;
   overall: number;
 }
@@ -15,11 +15,11 @@ function scoreColor(overall: number): string {
 }
 
 function Bar({ value, max }: { value: number; max: number }) {
-  const pct = Math.round((value / max) * 100);
+  const pct = Math.min(100, Math.round((value / max) * 100));
   return (
-    <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+    <div className="h-1.5 flex-1 bg-muted overflow-hidden">
       <div
-        className="h-full rounded-full bg-primary/70 transition-all duration-500"
+        className="h-full bg-primary/70 transition-all duration-500"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -34,10 +34,9 @@ export function ScoreBreakdown({
   overall,
 }: ScoreBreakdownProps) {
   const dimensions = [
-    { label: "Tech", value: techScore },
-    { label: "Industry", value: industryScore },
-    { label: "Hiring", value: hiringScore },
-    { label: "Stage", value: stageScore },
+    { label: "Industry", value: industryScore, max: 40 },
+    { label: "Stage", value: stageScore, max: 10 },
+    { label: "Tech", value: techScore, max: 10 },
   ];
 
   return (
@@ -54,7 +53,7 @@ export function ScoreBreakdown({
             <span className="text-xs text-muted-foreground w-14 shrink-0">
               {d.label}
             </span>
-            <Bar value={d.value} max={25} />
+            <Bar value={d.value} max={d.max} />
             <span className="text-xs tabular-nums w-5 text-right">
               {d.value}
             </span>

@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { db } from "@/lib/db";
 import { emails } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getGmailConnection, sendViaGmail } from "@/lib/email/gmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,31 +11,44 @@ interface SendEmailParams {
   to: string;
   subject: string;
   body: string;
+  userId: string;
 }
 
-export async function sendEmail({ emailId, to, subject, body }: SendEmailParams) {
-  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+export async function sendEmail({ emailId, to, subject, body, userId }: SendEmailParams) {
+  // Check if user has Gmail connected — use it if so
+  const gmailConnection = await getGmailConnection(userId);
 
-  const result = await resend.emails.send({
-    from: fromEmail,
-    to,
-    subject,
-    text: body, // plain text for cold emails — better deliverability
-    headers: {
-      "X-Entity-Ref-ID": emailId,
-    },
-  });
+  if (gmailConnection) {
+    await sendViaGmail({
+      userId,
+      to,
+      subject,
+      body,
+      fromEmail: gmailConnection.emailAddress,
+    });
+  } else {
+    // Fall back to Resend
+    const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
 
-  if (result.error) {
-    throw new Error(`Resend error: ${result.error.message}`);
+    const result = await resend.emails.send({
+      from: fromEmail,
+      to,
+      subject,
+      text: body,
+      headers: {
+        "X-Entity-Ref-ID": emailId,
+      },
+    });
+
+    if (result.error) {
+      throw new Error(`Resend error: ${result.error.message}`);
+    }
   }
 
   await db
     .update(emails)
     .set({ status: "sent", sentAt: new Date() })
     .where(eq(emails.id, emailId));
-
-  return result.data;
 }
 
 export async function sendBatch(

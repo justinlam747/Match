@@ -1,20 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-let client: ReturnType<typeof createClient> | null = null;
+let client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function getSupabaseBrowserClient() {
   if (client) return client;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      flowType: "pkce",
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
+  client = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+  );
 
   return client;
 }

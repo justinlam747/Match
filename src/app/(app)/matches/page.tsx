@@ -14,20 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface MatchRow {
+interface MatchRow extends Omit<MatchData, "selected"> {
   matchId: string;
-  companyId: string;
-  companyName: string;
-  batch: string | null;
-  description: string | null;
-  industries: string[];
-  techStack: string[];
-  overallScore: number;
-  techScore: number;
-  industryScore: number;
-  hiringScore: number;
-  stageScore: number;
-  explanation: string;
 }
 
 export default function MatchesPage() {
@@ -226,11 +214,10 @@ export default function MatchesPage() {
 
       {/* Batch filter pills */}
       {batches.length > 1 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground mr-1">Batch:</span>
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setBatchFilter(null)}
-            className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+            className={`px-2.5 py-1 text-xs shrink-0 transition-colors ${
               !batchFilter
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground"
@@ -238,11 +225,11 @@ export default function MatchesPage() {
           >
             All
           </button>
-          {batches.map((batch) => (
+          {batches.slice(0, 8).map((batch) => (
             <button
               key={batch}
               onClick={() => setBatchFilter(batchFilter === batch ? null : batch)}
-              className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+              className={`px-2.5 py-1 text-xs shrink-0 transition-colors ${
                 batchFilter === batch
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:text-foreground"
@@ -251,6 +238,18 @@ export default function MatchesPage() {
               {batch}
             </button>
           ))}
+          {batches.length > 8 && (
+            <Select value={batchFilter || ""} onValueChange={(v) => setBatchFilter(v || null)}>
+              <SelectTrigger className="h-6 w-20 text-[11px] border-0 bg-muted px-2">
+                <SelectValue placeholder="More..." />
+              </SelectTrigger>
+              <SelectContent>
+                {batches.slice(8).map((b) => (
+                  <SelectItem key={b} value={b} className="text-xs">{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
 

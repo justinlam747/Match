@@ -26,14 +26,14 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-5">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-7 h-7 bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center">
-                  Y
+                <div className="w-7 h-7 bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center rounded-lg">
+                  M
                 </div>
-                <span className="font-bold tracking-tight">YC Match</span>
+                <span className="font-bold tracking-tight">Match</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
                 One place for resume matching, contact discovery,
-                and cold&nbsp;email outreach to YC&nbsp;startups.
+                and cold&nbsp;email outreach to top&nbsp;startups.
               </p>
             </div>
             <div className="md:col-span-7 flex gap-20 text-sm">
@@ -62,10 +62,10 @@ export default function LandingPage() {
           {/* Large brand */}
           <div className="mt-20 pt-10 border-t border-border/30 flex items-end justify-between">
             <div className="text-8xl sm:text-9xl lg:text-[11rem] font-bold tracking-tighter leading-none text-foreground/[0.03] select-none">
-              YC Match
+              Match
             </div>
             <span className="text-xs text-muted-foreground pb-3">
-              &copy; 2025 YC Match
+              &copy; 2025 Match
             </span>
           </div>
         </div>

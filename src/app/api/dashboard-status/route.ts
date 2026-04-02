@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { resumes, matchScores, ycCompanies } from "@/lib/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { and, eq, desc, sql } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 
 export async function GET() {
@@ -9,13 +9,21 @@ export async function GET() {
     const user = await getApiUser();
     if (!user) return unauthorized();
 
-    // Check for existing resume
-    const [latestResume] = await db
+    // Check for active resume (fall back to latest)
+    let [latestResume] = await db
       .select()
       .from(resumes)
       .where(eq(resumes.userId, user.id))
       .orderBy(desc(resumes.createdAt))
       .limit(1);
+
+    // Prefer the active one
+    const [activeResume] = await db
+      .select()
+      .from(resumes)
+      .where(and(eq(resumes.isActive, true), eq(resumes.userId, user.id)))
+      .limit(1);
+    if (activeResume) latestResume = activeResume;
 
     // Check company count
     const [companyCount] = await db

@@ -425,29 +425,83 @@ async function runBenchmark() {
     writeFileSync(labelsPath, JSON.stringify(labels, null, 2));
   }
 
+  // Fine-tuned model scorer (calls localhost:8787)
+  async function fineTunedScore(resume: ParsedResume, company: typeof testCompanies[0]): Promise<number> {
+    const skills = [
+      ...resume.skills.languages, ...resume.skills.frameworks,
+      ...resume.skills.tools, ...resume.skills.databases,
+      ...resume.skills.cloud, ...resume.skills.other,
+    ].join(", ");
+    const experience = resume.experience
+      .map((e) => `${e.title} at ${e.company} (${e.industry}, ${e.duration_months}mo)`)
+      .join("; ");
+    const hiring = company.hiringSignals;
+    const isHiring = hiring?.has_careers_page || (hiring?.recent_job_posts ?? 0) > 0 || hiring?.eng_roles_open;
+
+    const prompt = `Score this match:\n\nCANDIDATE:\n- Skills: ${skills}\n- Experience: ${experience}\n- Industries: ${resume.industries_worked_in.join(", ")}\n- Seniority: ${resume.seniority_level} (${resume.years_of_experience} years)\n\nCOMPANY: ${company.name} (YC ${company.batch}, ${company.stage})\n- Description: ${company.desc}\n- Tech stack: ${company.tech}\n- Industries: ${company.industries.join(", ")}\n- Actively hiring: ${isHiring ? "Yes" : "No"}`;
+
+    try {
+      const res = await fetch("http://localhost:8787/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: "You are an expert technical recruiter scoring resume-job matches. Output ONLY valid JSON with techScore, industryScore, stageScore, hiringScore (each 0-25), and explanation.",
+          prompt,
+        }),
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!res.ok) return 0;
+      const data = await res.json();
+      const match = (data.result || "").match(/\{[\s\S]*\}/);
+      if (!match) return 0;
+      const parsed = JSON.parse(match[0]);
+      return (parsed.techScore || 0) + (parsed.industryScore || 0) + (parsed.stageScore || 0) + (parsed.hiringScore || 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  // Check if model server is running
+  let modelServerUp = false;
+  try {
+    const health = await fetch("http://localhost:8787/health", { signal: AbortSignal.timeout(3000) });
+    modelServerUp = health.ok;
+  } catch {}
+
+  if (modelServerUp) {
+    console.log("Model server detected at localhost:8787 — including fine-tuned model in benchmark\n");
+  } else {
+    console.log("Model server not running — skipping fine-tuned model (start with: python scripts/model-server.py)\n");
+  }
+
   // Define scorers
-  const scorers: { name: string; score: (r: ParsedResume, c: typeof testCompanies[0]) => number }[] = [
+  type Scorer = { name: string; score: (r: ParsedResume, c: typeof testCompanies[0]) => number | Promise<number> };
+  const scorers: Scorer[] = [
     { name: "Random", score: () => randomScore() },
     { name: "Keyword overlap", score: (r, c) => keywordScore(r, c) },
-    { name: "YC Match (ours)", score: (r, c) => ourScore(r, c) },
+    { name: "YC Match (heuristic)", score: (r, c) => ourScore(r, c) },
   ];
+  if (modelServerUp) {
+    scorers.push({ name: "Fine-tuned model", score: (r, c) => fineTunedScore(r, c) });
+  }
 
   const allResults: ScorerResult[] = [];
 
   for (const scorer of scorers) {
+    console.log(`  Running: ${scorer.name}...`);
     const perResumeMetrics: ScorerResult["metrics"][] = [];
 
     for (const resume of testResumes) {
-      // Get ground truth for this resume
       const resumeLabels = labels.filter((l) => l.resumeName === resume.name);
       const relevanceMap = new Map(resumeLabels.map((l) => [l.companyId, l.relevance]));
       const relevant = new Set(resumeLabels.filter((l) => l.relevance >= 2).map((l) => l.companyId));
 
-      // Score all companies
-      const scores = testCompanies.map((c) => ({
+      // Score all companies (await for async scorers)
+      const scorePromises = testCompanies.map(async (c) => ({
         id: c.id,
-        score: scorer.score(resume, c),
+        score: await scorer.score(resume, c),
       }));
+      const scores = await Promise.all(scorePromises);
       scores.sort((a, b) => b.score - a.score);
       const ranked = scores.map((s) => s.id);
 
@@ -463,7 +517,6 @@ async function runBenchmark() {
       });
     }
 
-    // Average across resumes
     const avg: ScorerResult["metrics"] = {
       "precision@3": 0, "precision@5": 0, "recall@5": 0, "recall@10": 0,
       "ndcg@5": 0, "ndcg@10": 0, map: 0, spearman: 0,

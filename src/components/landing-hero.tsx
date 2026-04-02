@@ -7,7 +7,7 @@ import Avatar, { genConfig } from "react-nice-avatar";
 
 function orangeAvatar(seed: string) {
   const c = genConfig(seed);
-  return { ...c, bgColor: "#FF6600" };
+  return { ...c, bgColor: "#F26522" };
 }
 
 const heroAvatars = [
@@ -77,16 +77,16 @@ const row3 = [
 
 function CompanyPill({ c }: { c: { n: string; l: string } }) {
   return (
-    <div className="flex-shrink-0 flex items-center gap-2.5 px-3.5 py-2 bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.16] transition-colors">
+    <div className="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/[0.1] border border-white/[0.1] hover:bg-white/[0.18] transition-all duration-200 hover:scale-[1.03]">
       <img
         src={c.l}
         alt={c.n}
         width={20}
         height={20}
-        className="w-5 h-5 object-contain"
+        className="w-5 h-5 rounded-sm object-contain"
         loading="lazy"
       />
-      <span className="text-white/70 text-xs font-medium whitespace-nowrap">
+      <span className="text-white/80 text-sm font-medium whitespace-nowrap">
         {c.n}
       </span>
     </div>
@@ -122,9 +122,9 @@ function Ticker({
 
 export function LandingHero() {
   return (
-    <section className="relative overflow-hidden bg-[#FF6600]">
+    <section className="relative overflow-hidden bg-[#F26522]">
       {/* Abstract gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#FF6600] via-[#FF8533] to-[#E55C00]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#F26522] via-[#FF8533] to-[#E55C00]" />
       <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-black/[0.15] to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-gradient-to-tr from-black/[0.1] to-transparent pointer-events-none" />
 
@@ -141,9 +141,9 @@ export function LandingHero() {
         <div className="max-w-[1400px] mx-auto">
           {/* Batch badge */}
           <HeroSlide direction="left" delay={0.1}>
-            <div className="inline-flex items-center gap-2.5 bg-white/[0.15] border border-white/[0.1] px-5 py-2 text-xs text-white/90 font-medium mb-10">
-              <span className="w-1.5 h-1.5 bg-white animate-pulse" />
-              W25 Demo Day &middot; 300+ new companies
+            <div className="inline-flex items-center gap-2.5 bg-white/[0.18] backdrop-blur-sm border border-white/[0.15] rounded-full px-5 py-2.5 text-sm text-white font-medium mb-10 shadow-lg shadow-black/5">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              New batch indexed &middot; 300+ companies added
             </div>
           </HeroSlide>
 
@@ -153,24 +153,17 @@ export function LandingHero() {
             <div className="font-sans">
               <HeroSlide direction="left" delay={0.15} distance={100}>
                 <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.88] text-white">
-                  Your resume.
+                  Automate your
                 </h1>
               </HeroSlide>
               <HeroSlide direction="left" delay={0.3} distance={100}>
-                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.88] text-white mt-3">
-                  500+ YC startups.
-                </h1>
-              </HeroSlide>
-              <HeroSlide direction="left" delay={0.45} distance={100}>
-                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.88] text-white/30 mt-3">
-                  One cold email away.
+                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.88] text-white/50 mt-3">
+                  outreach.
                 </h1>
               </HeroSlide>
               <HeroSlide direction="left" delay={0.55} distance={60}>
-                <p className="mt-8 text-lg text-white/60 leading-relaxed max-w-lg font-normal">
-                  Upload your resume, get AI-scored against every company from
-                  W25, S24 &amp; W24. Find the founders, write the email, land
-                  the interview.
+                <p className="mt-8 text-xl text-white/70 leading-relaxed max-w-lg font-normal">
+                  Upload your resume, get matched with 500+ startups, and send personalized cold emails — all on autopilot.
                 </p>
               </HeroSlide>
             </div>
@@ -178,19 +171,23 @@ export function LandingHero() {
             {/* Right — large 2×2 rounded-square portrait grid */}
             <div className="flex justify-center lg:justify-end">
               <HeroReveal delay={0.5} y={40} blur={10}>
-                <div className="grid grid-cols-2 gap-4 w-[320px] sm:w-[400px] lg:w-[460px]">
-                  {heroAvatars.slice(0, 4).map((c, i) => (
-                    <div
-                      key={i}
-                      className="aspect-square bg-[#FF6600] overflow-hidden rounded-[24px] border-[3px] border-white/20 shadow-xl shadow-black/15"
-                    >
-                      <Avatar
-                        className="w-full h-full"
-                        {...c}
-                        style={{ width: "100%", height: "100%" }}
-                      />
-                    </div>
-                  ))}
+                <div className="relative">
+                  {/* Glow effect behind avatars */}
+                  <div className="absolute -inset-6 bg-white/[0.08] rounded-[48px] blur-2xl animate-glow-pulse" />
+                  <div className="relative grid grid-cols-2 gap-4 w-[320px] sm:w-[400px] lg:w-[460px]">
+                    {heroAvatars.slice(0, 4).map((c, i) => (
+                      <div
+                        key={i}
+                        className="aspect-square bg-[#F26522] overflow-hidden rounded-[28px] border-[3px] border-white/25 shadow-2xl shadow-black/20 hover:scale-[1.03] transition-transform duration-300"
+                      >
+                        <Avatar
+                          className="w-full h-full"
+                          {...c}
+                          style={{ width: "100%", height: "100%" }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </HeroReveal>
             </div>
@@ -202,9 +199,9 @@ export function LandingHero() {
               <Link href="/login">
                 <Button
                   size="lg"
-                  className="h-14 px-10 text-sm font-semibold rounded-none bg-white text-[#FF6600] hover:bg-white/90 shadow-lg shadow-black/10"
+                  className="h-14 px-10 text-base font-semibold rounded-full bg-white text-[#F26522] hover:bg-white/90 shadow-xl shadow-black/15 hover:shadow-2xl hover:scale-[1.02] transition-all duration-200"
                 >
-                  Match me with YC companies
+                  Find my startup matches
                 </Button>
               </Link>
             </HeroSlide>
@@ -213,14 +210,14 @@ export function LandingHero() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="h-14 px-10 text-sm rounded-none border-white/30 text-white hover:bg-white/10 bg-transparent"
+                  className="h-14 px-10 text-base rounded-full border-white/30 text-white hover:bg-white/10 bg-transparent hover:scale-[1.02] transition-all duration-200"
                 >
                   See how it works
                 </Button>
               </Link>
             </HeroSlide>
             <HeroSlide direction="right" delay={0.9}>
-              <span className="text-xs text-white/50 ml-2 font-sans">
+              <span className="text-sm text-white/60 ml-2 font-sans">
                 Free &middot; Google sign-in &middot; No spam
               </span>
             </HeroSlide>
@@ -233,7 +230,7 @@ export function LandingHero() {
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2.5">
                   {heroAvatars.map((c, i) => (
-                    <Avatar key={i} className="w-9 h-9 border-2 border-[#FF6600]" {...c} />
+                    <Avatar key={i} className="w-9 h-9 rounded-full border-2 border-[#F26522]" {...c} />
                   ))}
                 </div>
                 <div className="text-xs text-white/60 leading-tight">
@@ -247,12 +244,12 @@ export function LandingHero() {
 
               {/* Stats */}
               {[
-                { value: "3", label: "YC batches" },
+                { value: "3", label: "batches" },
                 { value: "500+", label: "startups" },
-                { value: "W25", label: "latest batch" },
+                { value: "2025", label: "latest batch" },
               ].map((s) => (
                 <div key={s.label}>
-                  <div className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                  <div className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
                     {s.value}
                   </div>
                   <div className="text-xs text-white/50 mt-1">{s.label}</div>

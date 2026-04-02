@@ -2,38 +2,39 @@
 
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "./client";
-import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
-  user: User | null;
-  session: Session | null;
+  user: {
+    id: string;
+    email?: string;
+    user_metadata?: Record<string, string>;
+    app_metadata?: Record<string, string>;
+    created_at?: string;
+  } | null;
   loading: boolean;
 }
 
 export function useAuth(): AuthState {
   const [state, setState] = useState<AuthState>({
     user: null,
-    session: null,
     loading: true,
   });
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: { user: AuthState["user"] } | null } }) => {
       setState({
-        user: session?.user ?? null,
-        session,
+        user: data.session?.user ?? null,
         loading: false,
       });
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: string, session: { user: AuthState["user"] } | null) => {
       setState({
         user: session?.user ?? null,
-        session,
         loading: false,
       });
     });

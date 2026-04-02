@@ -19,15 +19,21 @@ interface AppNavProps {
   userName: string;
   userAvatar?: string;
   userEmail: string;
+  isAdmin?: boolean;
 }
 
-const links = [
+const baseLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/matches", label: "Matches" },
+  { href: "/interview", label: "Interview" },
   { href: "/emails", label: "Emails" },
+  { href: "/agents", label: "Agents" },
 ];
 
-export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {
+export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps) {
+  const links = isAdmin
+    ? [...baseLinks, { href: "/admin", label: "Admin" }]
+    : baseLinks;
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -47,13 +53,13 @@ export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm">
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="px-6 lg:px-10 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center">
-              Y
+              M
             </div>
-            <span className="font-bold tracking-tight">YC Match</span>
+            <span className="font-bold tracking-tight">Match</span>
           </Link>
 
           {/* Desktop nav */}
@@ -107,6 +113,9 @@ export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {
               {userEmail}
             </div>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/profile")} className="text-sm">
+              Profile
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/settings")} className="text-sm">
               Settings
             </DropdownMenuItem>

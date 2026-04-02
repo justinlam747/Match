@@ -17,7 +17,7 @@ gsap.registerPlugin(ScrollTrigger);
 /* ── Deterministic avatar configs — all orange bg ── */
 function orangeAvatar(seed: string) {
   const c = genConfig(seed);
-  return { ...c, bgColor: "#FF6600" };
+  return { ...c, bgColor: "#F26522" };
 }
 
 const avatarConfigs: AvatarFullConfig[] = [
@@ -67,7 +67,7 @@ function ResumeCard() {
   }, [runAnimation]);
 
   return (
-    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] h-full flex flex-col">
+    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] rounded-2xl h-full flex flex-col">
       <div className="flex items-center gap-3 mb-5">
         <Avatar className="w-8 h-8" {...avatarConfigs[6]} />
         <div>
@@ -83,9 +83,9 @@ function ResumeCard() {
             style={{ opacity: i < visible ? 1 : 0, transform: i < visible ? "translateX(0)" : "translateX(-20px)" }}
           >
             <span className="text-sm text-white/70">{skill}</span>
-            <div className="w-20 h-1.5 bg-white/10 overflow-hidden">
+            <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary transition-all duration-700"
+                className="h-full bg-primary rounded-full transition-all duration-700"
                 style={{ width: i < visible ? `${65 + i * 5}%` : "0%", transitionDelay: `${i * 100}ms` }}
               />
             </div>
@@ -117,7 +117,7 @@ function CounterCard({ value, suffix, label, desc }: { value: number; suffix: st
   }, [value]);
 
   return (
-    <div ref={ref} className="p-8 bg-gradient-to-br from-primary to-primary/70 text-white h-full flex flex-col justify-between">
+    <div ref={ref} className="p-8 bg-gradient-to-br from-primary to-primary/70 text-white rounded-2xl h-full flex flex-col justify-between">
       <div>
         <span className="text-6xl sm:text-7xl font-bold tracking-tight">{count}{suffix}</span>
       </div>
@@ -127,7 +127,7 @@ function CounterCard({ value, suffix, label, desc }: { value: number; suffix: st
           {avatarConfigs.slice(0, 5).map((c, i) => (
             <Avatar key={i} className="w-7 h-7 border-2 border-primary" {...c} />
           ))}
-          <div className="w-7 h-7 border-2 border-primary bg-white/20 flex items-center justify-center text-[9px] font-bold">
+          <div className="w-7 h-7 border-2 border-primary bg-white/20 rounded-full flex items-center justify-center text-[9px] font-bold">
             +42
           </div>
         </div>
@@ -167,7 +167,7 @@ function MatchScoreCard() {
   }, []);
 
   return (
-    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] h-full flex flex-col">
+    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] rounded-2xl h-full flex flex-col">
       <div className="flex items-center gap-3 mb-5">
         <Avatar className="w-8 h-8" {...avatarConfigs[7]} />
         <div>
@@ -183,9 +183,9 @@ function MatchScoreCard() {
                 <span className="text-white/60">{d.name}</span>
                 <span className="text-primary font-semibold tabular-nums">{widths[i] > 0 ? d.target : "—"}</span>
               </div>
-              <div className="w-full h-1.5 bg-white/10 overflow-hidden">
+              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000 ease-out"
+                  className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-1000 ease-out"
                   style={{ width: `${widths[i]}%`, transitionDelay: `${i * 150}ms` }}
                 />
               </div>
@@ -193,8 +193,8 @@ function MatchScoreCard() {
           ))}
         </div>
         <div className="flex items-center justify-center">
-          <div className="relative w-28 h-28 flex items-center justify-center border-2 border-white/10">
-            <div className="absolute inset-1 border border-primary/30" />
+          <div className="relative w-28 h-28 flex items-center justify-center border-2 border-white/10 rounded-2xl">
+            <div className="absolute inset-1 border border-primary/30 rounded-xl" />
             <div className="text-center">
               <div className="text-4xl font-bold text-primary tabular-nums">{overall}</div>
               <div className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Overall</div>
@@ -233,7 +233,7 @@ function EmailCard() {
   }, [runTyping]);
 
   return (
-    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] h-full flex flex-col">
+    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] rounded-2xl h-full flex flex-col">
       <div className="flex items-center gap-3 mb-5">
         <Avatar className="w-8 h-8" {...avatarConfigs[0]} />
         <div>
@@ -255,9 +255,9 @@ function EmailCard() {
         </p>
       </div>
       <div className="mt-4 flex gap-2">
-        <div className="px-4 py-1.5 bg-primary text-xs font-medium text-white">Send</div>
-        <div className="px-4 py-1.5 bg-white/10 text-xs font-medium text-white/60">Edit</div>
-        <div className="px-4 py-1.5 bg-white/10 text-xs font-medium text-white/60">Regenerate</div>
+        <div className="px-4 py-1.5 bg-primary rounded-lg text-xs font-medium text-white">Send</div>
+        <div className="px-4 py-1.5 bg-white/10 rounded-lg text-xs font-medium text-white/60">Edit</div>
+        <div className="px-4 py-1.5 bg-white/10 rounded-lg text-xs font-medium text-white/60">Regenerate</div>
       </div>
     </div>
   );
@@ -295,14 +295,14 @@ function ContactCard() {
   }, [runReveal]);
 
   return (
-    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] h-full flex flex-col">
+    <div ref={ref} className="p-8 bg-white/[0.06] border border-white/[0.08] rounded-2xl h-full flex flex-col">
       <div className="text-xs text-white/40 uppercase tracking-widest mb-1">Contact discovery</div>
       <h3 className="text-sm font-semibold mb-5">Find decision makers</h3>
       <div className="flex-1 space-y-3">
         {contacts.map((c, i) => (
           <div
             key={c.name}
-            className="flex items-center gap-3 p-3 bg-white/[0.04] border border-white/[0.06] transition-all duration-500"
+            className="flex items-center gap-3 p-3 bg-white/[0.04] border border-white/[0.06] rounded-xl transition-all duration-500"
             style={{ opacity: i < revealed ? 1 : 0, transform: i < revealed ? "translateY(0)" : "translateY(12px)" }}
           >
             <Avatar className="w-8 h-8 flex-shrink-0" {...avatarConfigs[c.ai]} />
@@ -310,7 +310,7 @@ function ContactCard() {
               <div className="text-sm font-medium text-white/80 truncate">{c.name}</div>
               <div className="text-xs text-white/40">{c.role}</div>
             </div>
-            <div className="w-2 h-2 bg-green-400/60 flex-shrink-0" />
+            <div className="w-2 h-2 bg-green-400/60 rounded-full flex-shrink-0" />
           </div>
         ))}
       </div>
@@ -364,14 +364,14 @@ function SendQueueCard() {
   }, [runCycle]);
 
   return (
-    <div ref={ref} className="p-8 bg-gradient-to-br from-primary to-primary/70 text-white h-full flex flex-col">
+    <div ref={ref} className="p-8 bg-gradient-to-br from-primary to-primary/70 text-white rounded-2xl h-full flex flex-col">
       <div className="text-xs text-white/60 uppercase tracking-widest mb-1">Send queue</div>
       <h3 className="text-sm font-semibold mb-5">Track every email</h3>
       <div className="flex-1 space-y-3">
         {statuses.map((s) => (
           <div key={s.company} className="flex items-center gap-3 transition-all duration-500">
             <Avatar className="w-6 h-6 flex-shrink-0" {...avatarConfigs[s.ai]} />
-            <div className={`w-2 h-2 ${colors[s.current]} ${s.current !== "queued" ? "animate-pulse" : ""} flex-shrink-0 transition-colors duration-500`} />
+            <div className={`w-2 h-2 ${colors[s.current]} rounded-full ${s.current !== "queued" ? "animate-pulse" : ""} flex-shrink-0 transition-colors duration-500`} />
             <span className="text-sm flex-1 truncate">{s.company}</span>
             <span className="text-xs text-white/50 capitalize transition-all duration-500">{s.current}</span>
           </div>
@@ -482,12 +482,12 @@ function BeforeAfterSection() {
           {/* BEFORE — chaotic scattered windows */}
           <div className="relative">
             <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
-              <span>Without YC Match</span>
+              <span>Without Match</span>
               <div className={`h-px flex-1 transition-all duration-1000 ${phase === "chaos" ? "bg-destructive/30" : "bg-border/30"}`} />
             </div>
             <div
               ref={chaosRef}
-              className={`relative bg-muted/30 border border-border/50 p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
+              className={`relative bg-muted/30 border border-border/50 rounded-2xl p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
                 phase === "chaos" ? "opacity-100" : "opacity-40"
               }`}
             >
@@ -506,7 +506,7 @@ function BeforeAfterSection() {
                   <div
                     key={tool.name}
                     data-chaos-card
-                    className={`absolute ${tool.color} border backdrop-blur-sm p-4 w-[180px] shadow-lg transition-transform duration-300 hover:scale-105`}
+                    className={`absolute ${tool.color} border backdrop-blur-sm rounded-xl p-4 w-[180px] shadow-lg transition-transform duration-300 hover:scale-105`}
                     style={{
                       top: `${15 + (i % 3) * 100}px`,
                       left: `${(i % 2) * 45 + tool.x}%`,
@@ -536,12 +536,12 @@ function BeforeAfterSection() {
           {/* AFTER — clean unified dashboard */}
           <div className="relative">
             <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
-              <span>With YC Match</span>
+              <span>With Match</span>
               <div className={`h-px flex-1 transition-all duration-1000 ${phase === "clean" ? "bg-primary/50" : "bg-border/30"}`} />
             </div>
             <div
               ref={cleanRef}
-              className={`relative bg-foreground border border-foreground p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
+              className={`relative bg-foreground border border-foreground rounded-2xl p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
                 phase === "clean" ? "opacity-100" : "opacity-40"
               }`}
             >
@@ -565,7 +565,7 @@ function BeforeAfterSection() {
                   <div
                     key={row.label}
                     data-clean-row
-                    className="flex items-center gap-3 p-3 bg-white/[0.06] border border-white/[0.06]"
+                    className="flex items-center gap-3 p-3 bg-white/[0.06] border border-white/[0.06] rounded-xl"
                   >
                     <Avatar className="w-7 h-7 flex-shrink-0" {...avatarConfigs[row.avatar]} />
                     <div className="flex-1 min-w-0">
@@ -573,9 +573,9 @@ function BeforeAfterSection() {
                         <span className="text-xs text-white/50">{row.label}</span>
                         <span className="text-xs text-primary font-medium">{row.value}</span>
                       </div>
-                      <div className="h-1 bg-white/10 overflow-hidden">
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary transition-all duration-1000 ease-out"
+                          className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
                           style={{
                             width: phase === "clean" ? `${row.bar}%` : "0%",
                             transitionDelay: `${i * 200}ms`,
@@ -587,7 +587,7 @@ function BeforeAfterSection() {
                 ))}
 
                 {/* Bottom action */}
-                <div data-clean-row className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 mt-2">
+                <div data-clean-row className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl mt-2">
                   <div className="flex items-center gap-2">
                     <div className="flex -space-x-1.5">
                       {avatarConfigs.slice(0, 3).map((c, i) => (
@@ -596,7 +596,7 @@ function BeforeAfterSection() {
                     </div>
                     <span className="text-xs text-white/60">3 emails queued</span>
                   </div>
-                  <div className="px-3 py-1 bg-primary text-xs font-medium text-white">Send all</div>
+                  <div className="px-3 py-1 bg-primary rounded-lg text-xs font-medium text-white">Send all</div>
                 </div>
               </div>
 
@@ -615,7 +615,7 @@ function BeforeAfterSection() {
           {(["chaos", "transform", "clean"] as const).map((p) => (
             <div
               key={p}
-              className={`h-1 transition-all duration-500 ${
+              className={`h-1 rounded-full transition-all duration-500 ${
                 phase === p ? "w-8 bg-primary" : "w-3 bg-border"
               }`}
             />
@@ -649,13 +649,13 @@ export function LandingFeatures() {
           >
             <RevealChild className="h-full"><ResumeCard /></RevealChild>
             <RevealChild className="h-full">
-              <CounterCard value={500} suffix="+" label="YC companies indexed" desc="W25, S24 & W24 batches" />
+              <CounterCard value={500} suffix="+" label="Startups indexed" desc="Top accelerator batches" />
             </RevealChild>
             <RevealChild className="h-full"><ContactCard /></RevealChild>
             <RevealChild className="sm:col-span-2 h-full"><MatchScoreCard /></RevealChild>
             <RevealChild className="h-full"><EmailCard /></RevealChild>
             <RevealChild className="sm:col-span-2 lg:col-span-2 h-full"><SendQueueCard /></RevealChild>
-            <RevealChild className="h-full p-8 bg-white/[0.06] border border-white/[0.08] flex flex-col justify-between">
+            <RevealChild className="h-full p-8 bg-white/[0.06] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
               <div>
                 <div className="text-xs text-white/40 uppercase tracking-widest mb-1">Speed</div>
                 <span className="text-6xl font-bold tracking-tight">&lt; 2<span className="text-3xl ml-1">min</span></span>

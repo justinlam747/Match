@@ -84,13 +84,13 @@ export function ResumeUpload({ onParsed }: ResumeUploadProps) {
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          {[
+          {[...new Set([
             ...parsed.skills.languages,
             ...parsed.skills.frameworks,
             ...parsed.skills.tools,
             ...parsed.skills.databases,
             ...parsed.skills.cloud,
-          ].map((skill) => (
+          ])].map((skill) => (
             <Badge key={skill} variant="secondary" className="text-xs font-normal">
               {skill}
             </Badge>
