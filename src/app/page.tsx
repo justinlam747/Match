@@ -32,8 +32,7 @@ export default function LandingPage() {
                 <span className="font-bold tracking-tight">Match</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-                One place for resume matching, contact discovery,
-                and cold&nbsp;email outreach to top&nbsp;startups.
+                AI-powered startup job search. Get matched with 500+ YC companies, draft cold emails, and prep for interviews — all in one place.
               </p>
             </div>
             <div className="md:col-span-7 flex gap-20 text-sm">
@@ -50,10 +49,13 @@ export default function LandingPage() {
               </div>
               <div className="space-y-4">
                 <div className="font-semibold text-xs uppercase tracking-widest text-muted-foreground">
-                  Resources
+                  Platform
                 </div>
                 <Link href="/login" className="block text-muted-foreground hover:text-foreground transition-colors">
                   Sign in
+                </Link>
+                <Link href="/login" className="block text-muted-foreground hover:text-foreground transition-colors">
+                  Get started free
                 </Link>
               </div>
             </div>

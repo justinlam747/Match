@@ -37,30 +37,32 @@ export async function GET(request: NextRequest) {
   try {
     const tokens = await exchangeCodeForTokens(code);
 
-    // Upsert: delete existing gmail connection for this user, then insert
-    await db
-      .delete(emailConnections)
-      .where(
-        and(
-          eq(emailConnections.userId, userId),
-          eq(emailConnections.provider, "gmail")
-        )
-      );
-
     const accessEnc = encrypt(tokens.accessToken);
     const refreshEnc = encrypt(tokens.refreshToken);
 
-    await db.insert(emailConnections).values({
-      userId,
-      provider: "gmail",
-      emailAddress: tokens.emailAddress,
-      accessTokenEnc: accessEnc.encrypted,
-      accessTokenIv: accessEnc.iv,
-      accessTokenTag: accessEnc.authTag,
-      refreshTokenEnc: refreshEnc.encrypted,
-      refreshTokenIv: refreshEnc.iv,
-      refreshTokenTag: refreshEnc.authTag,
-      tokenExpiresAt: tokens.expiresAt,
+    // Upsert in a transaction to prevent losing the connection if the insert fails
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(emailConnections)
+        .where(
+          and(
+            eq(emailConnections.userId, userId),
+            eq(emailConnections.provider, "gmail")
+          )
+        );
+
+      await tx.insert(emailConnections).values({
+        userId,
+        provider: "gmail",
+        emailAddress: tokens.emailAddress,
+        accessTokenEnc: accessEnc.encrypted,
+        accessTokenIv: accessEnc.iv,
+        accessTokenTag: accessEnc.authTag,
+        refreshTokenEnc: refreshEnc.encrypted,
+        refreshTokenIv: refreshEnc.iv,
+        refreshTokenTag: refreshEnc.authTag,
+        tokenExpiresAt: tokens.expiresAt,
+      });
     });
 
     return NextResponse.redirect(

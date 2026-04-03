@@ -14,28 +14,28 @@ export function LandingNav() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-6 pt-4">
+    <header className="fixed top-0 left-0 z-50 px-6 pt-4">
       <nav
-        className={`flex items-center gap-1.5 border px-3 py-2 rounded-full transition-all duration-300 ${
+        className={`flex items-center gap-1.5 border backdrop-blur-md transition-all duration-500 ease-out ${
           scrolled
-            ? "bg-background/90 backdrop-blur-md border-border/60 shadow-lg shadow-black/5"
-            : "bg-white/[0.12] backdrop-blur-md border-white/[0.15]"
+            ? "bg-background/90 border-border/60 shadow-lg shadow-black/5 rounded-full px-4 py-2.5"
+            : "bg-white/[0.12] border-white/[0.15] rounded-full px-3 py-2"
         }`}
       >
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 pl-2 pr-3">
           <div
-            className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition-colors duration-300 ${
+            className={`font-bold text-xs flex items-center justify-center transition-all duration-500 ${
               scrolled
-                ? "bg-primary text-primary-foreground"
-                : "bg-white/25 text-white"
+                ? "w-9 h-9 rounded-xl bg-primary text-primary-foreground"
+                : "w-8 h-8 rounded-xl bg-white/25 text-white"
             }`}
           >
             M
           </div>
           <span
-            className={`font-bold text-sm tracking-tight transition-colors duration-300 ${
-              scrolled ? "text-foreground" : "text-white"
+            className={`font-bold tracking-tight transition-all duration-500 ${
+              scrolled ? "text-foreground text-base" : "text-white text-sm"
             }`}
           >
             Match
@@ -44,56 +44,19 @@ export function LandingNav() {
 
         {/* Separator */}
         <div
-          className={`w-px h-5 mx-1 transition-colors duration-300 ${
-            scrolled ? "bg-border" : "bg-white/20"
+          className={`w-px mx-1 transition-all duration-500 ${
+            scrolled ? "h-6 bg-border" : "h-5 bg-white/20"
           }`}
         />
 
-        {/* Links */}
-        <div className="hidden md:flex items-center">
-          {[
-            { label: "Features", href: "#features" },
-            { label: "How it works", href: "#how-it-works" },
-          ].map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`px-3.5 py-1.5 text-sm rounded-lg transition-colors duration-200 ${
-                scrolled
-                  ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Separator */}
-        <div
-          className={`w-px h-5 mx-1 hidden md:block transition-colors duration-300 ${
-            scrolled ? "bg-border" : "bg-white/20"
-          }`}
-        />
-
-        {/* CTA buttons */}
-        <Link
-          href="/login"
-          className={`px-3.5 py-1.5 text-sm rounded-lg transition-colors duration-200 hidden md:block ${
-            scrolled
-              ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-              : "text-white/70 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          Sign in
-        </Link>
+        {/* CTA */}
         <Link href="/login">
           <Button
             size="sm"
-            className={`rounded-full px-6 h-9 text-xs font-semibold transition-all duration-300 ${
+            className={`rounded-full font-semibold transition-all duration-500 ${
               scrolled
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "bg-white text-[#F26522] hover:bg-white/90"
+                ? "px-7 h-10 text-sm bg-primary text-primary-foreground hover:bg-primary/90"
+                : "px-6 h-9 text-xs bg-white text-[#F26522] hover:bg-white/90"
             }`}
           >
             Get started

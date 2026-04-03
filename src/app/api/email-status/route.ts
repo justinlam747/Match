@@ -7,7 +7,7 @@ export async function GET() {
     const user = await getApiUser();
     if (!user) return unauthorized();
 
-    const sent = await getDailySendCount();
+    const sent = await getDailySendCount(user.id);
     const limit = getDailyLimit(30); // assume 30 days default
     const goodTime = isGoodSendTime();
     const nextGoodTime = getNextGoodSendTime();

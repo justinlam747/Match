@@ -16,52 +16,67 @@ export function LandingCta() {
 
             <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-10 items-start">
               {/* Left — heading */}
-              <div className="lg:col-span-7 space-y-8">
+              <div className="lg:col-span-6 space-y-8">
                 <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1]">
-                  Set up your first
+                  Your startup
                   <br />
-                  match <span className="inline-block w-12 h-12 bg-primary rounded-xl align-middle" />{" "}
-                  in
+                  career <span className="inline-block w-12 h-12 bg-primary rounded-xl align-middle" />{" "}
+                  on
                   <br />
-                  minutes
+                  autopilot.
                 </h2>
                 <p className="text-white/50 max-w-lg leading-relaxed text-xl">
-                  AI-first matching platform. One place for resume scoring,
-                  contact discovery, and outreach — without chaos.
+                  Match replaces your spreadsheets, email finders, and job boards with one AI-powered pipeline. From resume upload to interview prep in minutes, not weeks.
                 </p>
-                <Link href="/login">
-                  <Button
-                    size="lg"
-                    className="h-14 px-10 text-base font-semibold rounded-full bg-primary hover:bg-primary/90 mt-2 hover:scale-[1.02] transition-all duration-200 shadow-lg shadow-primary/25"
-                  >
-                    Get started free
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/login">
+                    <Button
+                      size="lg"
+                      className="h-14 px-10 text-base font-semibold rounded-full bg-primary hover:bg-primary/90 hover:scale-[1.02] transition-all duration-200 shadow-lg shadow-primary/25"
+                    >
+                      Get started free
+                    </Button>
+                  </Link>
+                  <div className="flex items-center gap-2 text-sm text-white/40">
+                    <span className="w-2 h-2 bg-green-400 rounded-full" />
+                    No credit card required
+                  </div>
+                </div>
               </div>
 
-              {/* Right — steps, stacked with offset */}
-              <div className="lg:col-span-5 space-y-5">
+              {/* Right — steps */}
+              <div className="lg:col-span-6 space-y-4">
                 {[
                   {
                     step: "01",
                     title: "Upload your resume",
-                    desc: "AI extracts skills, experience & seniority from your PDF.",
+                    desc: "AI parses your PDF and extracts skills, experience, seniority, and standout signals.",
                   },
                   {
                     step: "02",
-                    title: "Get matched",
-                    desc: "Scored against every startup on 4 dimensions.",
+                    title: "Get matched with 500+ YC startups",
+                    desc: "Scored on 4 dimensions: tech overlap, industry fit, hiring signals, and stage match.",
                   },
                   {
                     step: "03",
-                    title: "Send cold emails",
-                    desc: "Personalized, specific emails drafted and sent in bulk.",
+                    title: "Discover decision makers",
+                    desc: "Automatically finds CTOs, founders, and hiring managers at your top matches.",
+                  },
+                  {
+                    step: "04",
+                    title: "Draft & send personalized emails",
+                    desc: "AI writes cold emails that reference your experience and their specific product. Send via Gmail.",
+                  },
+                  {
+                    step: "05",
+                    title: "Prep for interviews",
+                    desc: "AI-generated flashcards: technical questions, behavioral prompts, and company knowledge quizzes.",
                   },
                 ].map((item, i) => (
                   <div
                     key={item.step}
                     className="flex gap-5 items-start p-5 bg-white/[0.04] border border-white/[0.06] rounded-xl"
-                    style={{ marginLeft: `${i * 12}px` }}
+                    style={{ marginLeft: `${i * 8}px` }}
                   >
                     <div className="flex-shrink-0 w-12 h-12 bg-white/[0.08] rounded-xl flex items-center justify-center text-sm font-bold text-primary">
                       {item.step}

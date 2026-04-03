@@ -25,20 +25,34 @@ export async function rateLimit(
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const windowStart = now - windowMs;
-  const member = `${now}-${Math.random().toString(36).slice(2, 8)}`;
 
+  // First: clean expired entries and check current count
   const pipeline = redis.pipeline();
   pipeline.zremrangebyscore(key, 0, windowStart);
-  pipeline.zadd(key, { score: now, member });
   pipeline.zcard(key);
-  pipeline.expire(key, windowSeconds);
 
   const results = await pipeline.exec();
-  const count = results[2] as number;
+  const count = results[1] as number;
+
+  if (count >= limit) {
+    // Over limit — do NOT add the request to the set
+    return {
+      success: false,
+      remaining: 0,
+      reset: Math.ceil(windowSeconds - (now - windowStart) / 1000),
+    };
+  }
+
+  // Under limit — record this request
+  const member = `${now}-${Math.random().toString(36).slice(2, 8)}`;
+  const addPipeline = redis.pipeline();
+  addPipeline.zadd(key, { score: now, member });
+  addPipeline.expire(key, windowSeconds);
+  await addPipeline.exec();
 
   return {
-    success: count <= limit,
-    remaining: Math.max(0, limit - count),
+    success: true,
+    remaining: Math.max(0, limit - count - 1),
     reset: Math.ceil(windowSeconds - (now - windowStart) / 1000),
   };
 }

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check throttling
-    const { allowed, sent, limit } = await canSendToday(domainAgeDays);
+    const { allowed, sent, limit } = await canSendToday(user.id, domainAgeDays);
     if (!allowed) {
       return NextResponse.json(
         {

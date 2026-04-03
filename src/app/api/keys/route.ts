@@ -66,24 +66,26 @@ export async function POST(request: NextRequest) {
   const { encrypted, iv, authTag } = encrypt(apiKey);
   const keyHint = maskKey(apiKey);
 
-  // Upsert: delete existing key for this provider, then insert
-  await db
-    .delete(apiKeys)
-    .where(
-      and(eq(apiKeys.userId, user.id), eq(apiKeys.provider, provider))
-    );
+  // Upsert in a transaction to prevent losing the key if the insert fails
+  const [saved] = await db.transaction(async (tx) => {
+    await tx
+      .delete(apiKeys)
+      .where(
+        and(eq(apiKeys.userId, user.id), eq(apiKeys.provider, provider))
+      );
 
-  const [saved] = await db
-    .insert(apiKeys)
-    .values({
-      userId: user.id,
-      provider,
-      encryptedKey: encrypted,
-      keyHint,
-      iv,
-      authTag,
-    })
-    .returning({ id: apiKeys.id, provider: apiKeys.provider, keyHint: apiKeys.keyHint });
+    return tx
+      .insert(apiKeys)
+      .values({
+        userId: user.id,
+        provider,
+        encryptedKey: encrypted,
+        keyHint,
+        iv,
+        authTag,
+      })
+      .returning({ id: apiKeys.id, provider: apiKeys.provider, keyHint: apiKeys.keyHint });
+  });
 
   return NextResponse.json({ key: saved });
 }

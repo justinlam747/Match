@@ -29,25 +29,26 @@ export async function GET(req: NextRequest) {
     conditions.push(sql`${llmLogs.createdAt} > (SELECT created_at FROM llm_logs WHERE id = ${afterId})`);
   }
 
-  const logs = await db
-    .select()
-    .from(llmLogs)
-    .where(sql`${llmLogs.createdAt} >= ${since}${afterId ? sql` AND ${llmLogs.createdAt} > (SELECT created_at FROM llm_logs WHERE id = ${afterId})` : sql``}`)
-    .orderBy(desc(llmLogs.createdAt))
-    .limit(limit);
-
-  // Aggregates for KPI tiles — always over the full window
-  const [agg] = await db
-    .select({
-      totalRequests: sql<number>`count(*)::int`,
-      totalCost: sql<number>`coalesce(sum(${llmLogs.costCents}), 0)`,
-      avgLatency: sql<number>`coalesce(avg(${llmLogs.latencyMs}), 0)::int`,
-      totalInputTokens: sql<number>`coalesce(sum(${llmLogs.inputTokens}), 0)::int`,
-      totalOutputTokens: sql<number>`coalesce(sum(${llmLogs.outputTokens}), 0)::int`,
-      errorCount: sql<number>`count(*) filter (where ${llmLogs.status} = 'error')::int`,
-    })
-    .from(llmLogs)
-    .where(gte(llmLogs.createdAt, since));
+  // Run logs and aggregation queries in parallel
+  const [logs, [agg]] = await Promise.all([
+    db
+      .select()
+      .from(llmLogs)
+      .where(sql`${llmLogs.createdAt} >= ${since}${afterId ? sql` AND ${llmLogs.createdAt} > (SELECT created_at FROM llm_logs WHERE id = ${afterId})` : sql``}`)
+      .orderBy(desc(llmLogs.createdAt))
+      .limit(limit),
+    db
+      .select({
+        totalRequests: sql<number>`count(*)::int`,
+        totalCost: sql<number>`coalesce(sum(${llmLogs.costCents}), 0)`,
+        avgLatency: sql<number>`coalesce(avg(${llmLogs.latencyMs}), 0)::int`,
+        totalInputTokens: sql<number>`coalesce(sum(${llmLogs.inputTokens}), 0)::int`,
+        totalOutputTokens: sql<number>`coalesce(sum(${llmLogs.outputTokens}), 0)::int`,
+        errorCount: sql<number>`count(*) filter (where ${llmLogs.status} = 'error')::int`,
+      })
+      .from(llmLogs)
+      .where(gte(llmLogs.createdAt, since)),
+  ]);
 
   return NextResponse.json({
     logs,

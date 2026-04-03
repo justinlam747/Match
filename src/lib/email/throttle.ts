@@ -11,7 +11,7 @@ const WARMUP_SCHEDULE = [
   { maxDays: Infinity, limit: 50 },
 ];
 
-export async function getDailySendCount(): Promise<number> {
+export async function getDailySendCount(userId: string): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -19,7 +19,7 @@ export async function getDailySendCount(): Promise<number> {
     .select({ count: sql<number>`count(*)` })
     .from(emails)
     .where(
-      and(eq(emails.status, "sent"), gte(emails.sentAt, today))
+      and(eq(emails.userId, userId), eq(emails.status, "sent"), gte(emails.sentAt, today))
     );
 
   return result[0]?.count || 0;
@@ -32,12 +32,12 @@ export function getDailyLimit(domainAgeDays: number): number {
   return 50;
 }
 
-export async function canSendToday(domainAgeDays: number): Promise<{
+export async function canSendToday(userId: string, domainAgeDays: number): Promise<{
   allowed: boolean;
   sent: number;
   limit: number;
 }> {
-  const sent = await getDailySendCount();
+  const sent = await getDailySendCount(userId);
   const limit = getDailyLimit(domainAgeDays);
   return { allowed: sent < limit, sent, limit };
 }
