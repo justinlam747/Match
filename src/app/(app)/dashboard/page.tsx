@@ -216,6 +216,7 @@ export default function DashboardPage() {
             label="Explore Matches"
             description="Browse your top company matches, filter by batch, tech stack, and industry fit. Export to CSV."
             cta={`View ${existingMatches} matches`}
+            animation="animate-icon-bounce"
           />
           <FeatureCard
             href="/emails"
@@ -223,6 +224,7 @@ export default function DashboardPage() {
             label="Email Outreach"
             description="AI-drafted cold emails to founders and hiring managers. Connect Gmail to send directly."
             cta="Draft emails"
+            animation="animate-icon-wobble"
           />
           <FeatureCard
             href="/interview"
@@ -230,6 +232,7 @@ export default function DashboardPage() {
             label="Interview Prep"
             description="Practice with AI-generated questions tailored to each company. Company quizzes from real data."
             cta="Start practicing"
+            animation="animate-icon-pulse"
           />
           <FeatureCard
             href="/agents"
@@ -237,6 +240,7 @@ export default function DashboardPage() {
             label="AI Agents"
             description="Run automated pipelines — scoring, email drafting, contact discovery. Set it and forget it."
             cta="Launch agents"
+            animation="animate-icon-spin"
           />
           <FeatureCard
             href="/profile"
@@ -244,6 +248,7 @@ export default function DashboardPage() {
             label="Your Profile"
             description="See your parsed skills, experience, and how you match. Link GitHub, LinkedIn, and portfolio."
             cta="View profile"
+            animation="animate-icon-float"
           />
           <div className="border border-dashed rounded-lg p-5 flex flex-col justify-between">
             <div>
@@ -300,12 +305,14 @@ function FeatureCard({
   label,
   description,
   cta,
+  animation,
 }: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   description: string;
   cta: string;
+  animation: string;
 }) {
   return (
     <Link
@@ -313,7 +320,7 @@ function FeatureCard({
       className="group border rounded-lg p-5 hover:border-foreground/20 hover:shadow-sm transition-all flex flex-col justify-between"
     >
       <div>
-        <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center mb-3 animate-icon-pulse">
+        <div className={`w-9 h-9 rounded-lg bg-primary flex items-center justify-center mb-3 ${animation}`}>
           <Icon className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="text-sm font-medium mb-1">{label}</div>
