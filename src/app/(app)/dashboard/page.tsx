@@ -313,8 +313,8 @@ function FeatureCard({
       className="group border rounded-lg p-5 hover:border-foreground/20 hover:shadow-sm transition-all flex flex-col justify-between"
     >
       <div>
-        <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center mb-3 animate-icon-pulse">
-          <Icon className="w-5 h-5 text-primary" />
+        <div className="w-9 h-9 rounded-lg bg-primary/30 flex items-center justify-center mb-3 animate-icon-pulse">
+          <Icon className="w-5 h-5 text-primary/70" />
         </div>
         <div className="text-sm font-medium mb-1">{label}</div>
         <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
