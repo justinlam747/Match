@@ -230,6 +230,16 @@
   animation: glow-pulse 3s ease-in-out infinite;
 }
 
+/* Icon idle pulse for feature cards */
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@utility animate-icon-pulse {
+  animation: icon-pulse 3s ease-in-out infinite;
+}
+
 /* Flashcard slide transitions */
 @keyframes slide-in-right {
   0% { transform: translateX(40px); opacity: 0; }
