@@ -230,45 +230,7 @@
   animation: glow-pulse 3s ease-in-out infinite;
 }
 
-/* Icon idle animations for feature cards */
-@keyframes icon-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-@keyframes icon-wobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-5deg); }
-  75% { transform: rotate(5deg); }
-}
-@keyframes icon-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-@keyframes icon-spin {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(15deg); }
-}
-@keyframes icon-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  33% { transform: translateY(-2px) scale(1.03); }
-  66% { transform: translateY(1px) scale(0.98); }
-}
 
-@utility animate-icon-bounce {
-  animation: icon-bounce 2.5s ease-in-out infinite;
-}
-@utility animate-icon-wobble {
-  animation: icon-wobble 3s ease-in-out infinite;
-}
-@utility animate-icon-pulse {
-  animation: icon-pulse 2.8s ease-in-out infinite;
-}
-@utility animate-icon-spin {
-  animation: icon-spin 3.2s ease-in-out infinite;
-}
-@utility animate-icon-float {
-  animation: icon-float 3.5s ease-in-out infinite;
-}
 
 /* Flashcard slide transitions */
 @keyframes slide-in-right {
