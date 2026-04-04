@@ -210,8 +210,6 @@ export async function POST(request: NextRequest) {
     const parsed = resume.parsedData as ParsedResume;
 
     // Step 1: Build embedding from resume + all user documents
-    await db.delete(resumeEmbeddings).where(eq(resumeEmbeddings.resumeId, resumeId));
-
     const resumeText = buildResumeEmbeddingText(parsed);
 
     // Append all user documents as extra context
@@ -230,9 +228,12 @@ export async function POST(request: NextRequest) {
 
     const resumeVector = await generateEmbedding(fullText, user.id);
 
-    await db.insert(resumeEmbeddings).values({
-      resumeId,
-      embedding: resumeVector,
+    await db.transaction(async (tx) => {
+      await tx.delete(resumeEmbeddings).where(eq(resumeEmbeddings.resumeId, resumeId));
+      await tx.insert(resumeEmbeddings).values({
+        resumeId,
+        embedding: resumeVector,
+      });
     });
 
     // Step 2: Vector similarity search — top 50
@@ -321,21 +322,25 @@ export async function POST(request: NextRequest) {
 
     results.sort((a, b) => b.overallScore - a.overallScore);
 
-    // Clear old scores and store new
-    await db.delete(matchScores).where(eq(matchScores.resumeId, resumeId));
+    // Clear old scores and store new — in a transaction with batch insert
+    await db.transaction(async (tx) => {
+      await tx.delete(matchScores).where(eq(matchScores.resumeId, resumeId));
 
-    for (const result of results) {
-      await db.insert(matchScores).values({
-        resumeId,
-        companyId: result.companyId,
-        overallScore: result.overallScore,
-        techScore: result.techScore,
-        industryScore: result.industryScore,
-        hiringScore: result.hiringScore,
-        stageScore: result.stageScore,
-        explanation: result.explanation,
-      });
-    }
+      if (results.length > 0) {
+        await tx.insert(matchScores).values(
+          results.map((result) => ({
+            resumeId,
+            companyId: result.companyId,
+            overallScore: result.overallScore,
+            techScore: result.techScore,
+            industryScore: result.industryScore,
+            hiringScore: result.hiringScore,
+            stageScore: result.stageScore,
+            explanation: result.explanation,
+          }))
+        );
+      }
+    });
 
     return NextResponse.json({
       message: `Matched ${results.length} companies${rerank ? " (AI reranked)" : ""}`,

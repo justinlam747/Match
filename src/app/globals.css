@@ -183,6 +183,23 @@
   animation: scroll-right linear infinite;
 }
 
+/* Vertical infinite scroll for carousels */
+@keyframes scroll-up {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@keyframes scroll-down {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+@utility animate-scroll-up {
+  animation: scroll-up linear infinite;
+}
+@utility animate-scroll-down {
+  animation: scroll-down linear infinite;
+}
+
 /* Shimmer effect for badges and highlights */
 @keyframes shimmer {
   0% { background-position: -200% center; }

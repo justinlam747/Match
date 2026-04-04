@@ -51,16 +51,18 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (setActive) {
-    // Deactivate all, activate this one
-    await db
-      .update(resumes)
-      .set({ isActive: false })
-      .where(eq(resumes.userId, user.id));
+    // Deactivate all, activate this one — in a transaction to avoid all-inactive state
+    await db.transaction(async (tx) => {
+      await tx
+        .update(resumes)
+        .set({ isActive: false })
+        .where(eq(resumes.userId, user.id));
 
-    await db
-      .update(resumes)
-      .set({ isActive: true })
-      .where(eq(resumes.id, id));
+      await tx
+        .update(resumes)
+        .set({ isActive: true })
+        .where(eq(resumes.id, id));
+    });
   }
 
   if (name !== undefined) {

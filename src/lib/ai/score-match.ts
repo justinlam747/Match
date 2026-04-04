@@ -119,10 +119,9 @@ function parseScoreJSON(text: string): ScoreOutput | null {
 const LOCAL_MODEL_URL = process.env.MODEL_SERVER_URL || "http://localhost:8787";
 
 async function callLocalServer(userPrompt: string): Promise<ScoreOutput | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
     const response = await fetch(`${LOCAL_MODEL_URL}/score`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -136,6 +135,7 @@ async function callLocalServer(userPrompt: string): Promise<ScoreOutput | null> 
     const data = await response.json();
     return parseScoreJSON(data.result || "");
   } catch {
+    clearTimeout(timeout);
     // Server not running — fall through to next provider
     return null;
   }

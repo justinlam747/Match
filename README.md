@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YC Match
+
+AI-powered matching with 500+ YC startups. One tool for scoring, outreach, and interview prep.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What Changed in This Branch
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Race Condition & Data Corruption Fixes
 
-## Learn More
+- **Email throttle was global, not per-user** (`lib/email/throttle.ts`) — `getDailySendCount` now filters by `userId`. Previously one user's sends reduced every other user's quota.
+- **Rate limiter inflated count on rejected requests** (`lib/rate-limit.ts`) — Sliding window now checks the count *before* adding the member. Rejected requests no longer permanently skew the counter.
+- **6 non-transactional delete-then-insert patterns** wrapped in `db.transaction()`:
+  - `api/gmail/callback` — Gmail OAuth connection upsert
+  - `api/keys` — API key upsert
+  - `api/resumes` — Resume activation toggle
+  - `api/parse-resume` — Deactivate-all + insert new resume
+  - `api/score-matches` — Resume embedding upsert
+  - `api/score-matches` — Match score delete + batch insert
 
-To learn more about Next.js, take a look at the following resources:
+### Performance Optimizations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Batch insert for match scores** (`api/score-matches`) — Replaced N+1 individual `INSERT` loop with a single `db.insert().values([...])`.
+- **Parallelized dashboard queries** (`api/dashboard-status`) — Merged 2 resume queries into 1 and ran independent queries with `Promise.all`.
+- **Parallelized admin log queries** (`api/admin/llm-logs`) — Logs + aggregation queries now run concurrently.
+- **Memoized matches page** (`(app)/matches/page.tsx`) — Wrapped expensive `.filter().filter().sort()` chain and `selectedIds` in `useMemo`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Memory Leak Fixes
 
-## Deploy on Vercel
+- **7 bento card animation loops** (`components/landing-features.tsx`) — All `setInterval`/`setTimeout` chains now properly tracked and cleared on unmount.
+- **Grainient WebGL context** (`components/grainient.tsx`) — Setup runs once; prop changes update uniforms via refs instead of tearing down and rebuilding the entire GL context. Added `disposed` flag to prevent async setup from running post-unmount.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Resource Leak Fixes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Timeout leaks** in `lib/scraper.ts` and `lib/ai/score-match.ts` — `clearTimeout` now called in `catch` paths.
+
+### Landing Page Redesign
+
+- **Step 1 (Resume Upload)** — Now shows a realistic drag-and-drop dashboard mockup with an animated cursor dragging a "resume_2025.pdf" file into a drop zone, followed by a crossfade to extracted skills. Smooth 700ms crossfade transitions between phases.
+- **Step 2 (Match Scoring)** — Now shows real YC company tiles (Supabase, Retool, Vanta, etc.) in a 2-column grid that score one-by-one, mimicking the actual matches page with logos, badges, hiring dots, and industry tags.
+- **Grainient hero** lightened to softer orange tones.
+- Both Step 1 and Step 2 loop continuously with smooth fade transitions.

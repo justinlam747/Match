@@ -68,22 +68,24 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(" ");
 
-    // Deactivate other resumes, make this one active
-    await db
-      .update(resumes)
-      .set({ isActive: false })
-      .where(eq(resumes.userId, user.id));
+    // Deactivate other resumes and insert new one in a transaction
+    const [resume] = await db.transaction(async (tx) => {
+      await tx
+        .update(resumes)
+        .set({ isActive: false })
+        .where(eq(resumes.userId, user.id));
 
-    const [resume] = await db
-      .insert(resumes)
-      .values({
-        userId: user.id,
-        name: autoName,
-        rawText,
-        parsedData,
-        isActive: true,
-      })
-      .returning();
+      return tx
+        .insert(resumes)
+        .values({
+          userId: user.id,
+          name: autoName,
+          rawText,
+          parsedData,
+          isActive: true,
+        })
+        .returning();
+    });
 
     return NextResponse.json({
       id: resume.id,

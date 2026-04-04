@@ -78,30 +78,36 @@ export default function MatchesPage() {
     return Array.from(set).sort().reverse();
   }, [matches]);
 
-  const filtered = matches
-    .filter((m) => {
-      if (batchFilter && m.batch !== batchFilter) return false;
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        m.companyName.toLowerCase().includes(q) ||
-        m.description?.toLowerCase().includes(q) ||
-        m.industries.some((i) => i.toLowerCase().includes(q)) ||
-        m.techStack.some((t) => t.toLowerCase().includes(q))
-      );
-    })
-    .filter((m) => m.overallScore >= parseInt(minScore))
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "tech": return b.techScore - a.techScore;
-        case "industry": return b.industryScore - a.industryScore;
-        case "hiring": return b.hiringScore - a.hiringScore;
-        case "name": return a.companyName.localeCompare(b.companyName);
-        default: return b.overallScore - a.overallScore;
-      }
-    });
+  const filtered = useMemo(() =>
+    matches
+      .filter((m) => {
+        if (batchFilter && m.batch !== batchFilter) return false;
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          m.companyName.toLowerCase().includes(q) ||
+          m.description?.toLowerCase().includes(q) ||
+          m.industries.some((i) => i.toLowerCase().includes(q)) ||
+          m.techStack.some((t) => t.toLowerCase().includes(q))
+        );
+      })
+      .filter((m) => m.overallScore >= parseInt(minScore))
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "tech": return b.techScore - a.techScore;
+          case "industry": return b.industryScore - a.industryScore;
+          case "hiring": return b.hiringScore - a.hiringScore;
+          case "name": return a.companyName.localeCompare(b.companyName);
+          default: return b.overallScore - a.overallScore;
+        }
+      }),
+    [matches, search, sortBy, minScore, batchFilter]
+  );
 
-  const selectedIds = matches.filter((m) => m.selected).map((m) => m.companyId);
+  const selectedIds = useMemo(
+    () => matches.filter((m) => m.selected).map((m) => m.companyId),
+    [matches]
+  );
 
   async function handleFindContacts() {
     if (selectedIds.length === 0) return;

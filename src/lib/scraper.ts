@@ -37,11 +37,10 @@ export async function scrapeUrl(url: string): Promise<{
   title: string;
   text: string;
 } | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
     validateExternalUrl(url);
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(url, {
       signal: controller.signal,
@@ -76,6 +75,7 @@ export async function scrapeUrl(url: string): Promise<{
 
     return text ? { title, text } : null;
   } catch {
+    clearTimeout(timeout);
     return null;
   }
 }
