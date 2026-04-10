@@ -266,6 +266,31 @@ export const userConfig = pgTable("user_config", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const userProfiles = pgTable("user_profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull()
+    .unique(),
+  targetRoles: text("target_roles").array().default([]).notNull(),
+  targetArchetypes: text("target_archetypes").array().default([]).notNull(),
+  professionalNarrative: text("professional_narrative"),
+  exitNarrative: text("exit_narrative"),
+  compensationTarget: integer("compensation_target"),
+  compensationMinimum: integer("compensation_minimum"),
+  compensationCurrency: text("compensation_currency").default("USD").notNull(),
+  locationPreference: text("location_preference"),
+  remotePreference: text("remote_preference"),
+  visaStatus: text("visa_status"),
+  timezone: text("timezone"),
+  signatureStrengths: text("signature_strengths").array().default([]).notNull(),
+  portfolioUrls: text("portfolio_urls").array().default([]).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [index("user_profiles_user_id_idx").on(t.userId)]);
+
+export type UserProfileRow = typeof userProfiles.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),

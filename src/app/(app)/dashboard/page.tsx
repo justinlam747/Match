@@ -10,8 +10,10 @@ import { DocumentManager } from "@/components/document-manager";
 import { ResumeList } from "@/components/resume-list";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Target, Mail, GraduationCap, Sparkles, User, Search } from "lucide-react";
+import { Target, Mail, GraduationCap, Sparkles, User, Search, UserCog } from "lucide-react";
 import type { ParsedResume } from "@/lib/db/schema";
+import { Progress } from "@/components/ui/progress";
+import { getProfileCompleteness } from "@/lib/profile/completeness";
 
 interface DashboardStatus {
   hasResume: boolean;
@@ -31,6 +33,10 @@ export default function DashboardPage() {
   const [companyCount, setCompanyCount] = useState(0);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [docs, setDocs] = useState<{ type: string; title: string }[]>([]);
+  const [careerCompleteness, setCareerCompleteness] = useState<{
+    percent: number;
+    missingFields: string[];
+  } | null>(null);
 
   const isSetup = !resumeId;
   const hasData = existingMatches > 0;
@@ -67,9 +73,18 @@ export default function DashboardPage() {
         }
       } catch {}
     }
+    async function loadCareerProfile() {
+      try {
+        const res = await fetch("/api/profile/career");
+        if (!res.ok) return;
+        const data = await res.json();
+        setCareerCompleteness(getProfileCompleteness(data));
+      } catch {}
+    }
     loadStatus();
     loadDocs();
     checkKeys();
+    loadCareerProfile();
   }, []);
 
   const handleResumeParsed = useCallback(
@@ -205,6 +220,35 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Career profile completeness */}
+      {careerCompleteness && careerCompleteness.percent < 100 && (
+        <Card>
+          <CardContent className="p-4">
+            <Link href="/profile/career" className="group flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <UserCog className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-medium group-hover:underline">
+                    Complete your career profile
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {careerCompleteness.percent}%
+                  </span>
+                </div>
+                <Progress value={careerCompleteness.percent} className="mt-2" />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {careerCompleteness.missingFields.length > 0
+                    ? `Still needed: ${careerCompleteness.missingFields.join(", ")}`
+                    : "Finish the last details for better matches."}
+                </p>
+              </div>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Feature promo cards */}
       <div>

@@ -134,3 +134,79 @@ Fallback order is: local fine-tuned model → Groq → Claude → OpenAI → **l
 ## Don't duplicate instructions between SYSTEM_PROMPT and user prompt
 
 `buildPrompt` in `score-match.ts` initially repeated "Score all 8 dimensions" even though `SYSTEM_PROMPT` already said it. That's pure token waste on every scoring call. When editing AI prompts, diff against the system prompt and strip any redundant instructions from the user-prompt builder.
+
+---
+
+# PR 3 lessons (`feat/pr3-career-profile`: userProfiles schema, profile wizard, completeness)
+
+## base-ui Tooltip `render` prop — children are SIBLINGS, not descendants
+
+`<TooltipTrigger render={<button>...</button>}>{children}</TooltipTrigger>` does NOT place `{children}` inside the rendered `<button>`. The children passed to `TooltipTrigger` become siblings of the rendered element. To put an icon inside the trigger button, inline it into the `render` prop itself:
+
+```tsx
+// WRONG — <Info/> will not appear inside the button
+<TooltipTrigger render={<button className="..." />}>
+  <Info className="h-4 w-4" />
+</TooltipTrigger>
+
+// RIGHT
+<TooltipTrigger render={<button className="..."><Info className="h-4 w-4" /></button>} />
+```
+
+PR 3's first critic caught this on the wizard's field help tooltips. The same rule likely applies to other base-ui primitives that expose a `render` prop. When in doubt, check the `src/components/ui/` shadcn wrapper to see the expected shape. This is important enough that it's also been promoted to `AGENTS.md`.
+
+## Drizzle `$inferSelect` — export the row type alongside the table
+
+`typeof userProfiles.$inferSelect` is the canonical way to name a table's row type. Export it from `src/lib/db/schema.ts` right next to the table:
+
+```ts
+export const userProfiles = pgTable("user_profiles", { ... });
+export type UserProfileRow = typeof userProfiles.$inferSelect;
+```
+
+Then the API route, the client form, and helpers like `getProfileCompleteness` can all import a single shared type instead of reinventing parallel interfaces. PR 3 initially had `UserProfileRow` defined locally inside the route, which forced callers to do `as unknown as Parameters<typeof getProfileCompleteness>[0]` — ugly and a signal the type should have been exported in the first place.
+
+## Completeness / scoring helpers — take a narrow input interface, not the full row
+
+When writing a helper like `getProfileCompleteness(profile)`, type the parameter as a narrow interface that picks ONLY the fields the helper reads (e.g. `ProfileCompletenessInput`). Don't require the full `UserProfileRow`. Benefits:
+
+- Callers with partial/form objects don't need casts.
+- The helper's contract is self-documenting — you can see at a glance which fields matter for completeness.
+- Adding new columns to the table doesn't force unrelated callers to update.
+
+## Numeric `0` is a legitimate value — rule out with `< 0`, `== null`, or explicit `undefined`
+
+PR 3's completeness rule initially rejected `compensationMinimum <= 0` as missing, which marked users with a $0 floor (valid — "open to volunteer / unpaid") as incomplete. The correct check is `< 0` (negative is invalid) plus a null check. Same bug shape applies anywhere a form accepts a numeric field where 0 is semantically meaningful (counts, minimums, thresholds): never fold "absent" and "zero" together.
+
+## Shared enum constants — put string unions in `src/lib/<domain>/constants.ts`
+
+When a column is an enum-like string union (e.g. `remotePreference: "remote" | "hybrid" | "onsite" | "flexible"`), put the tuple + union type + type guard + label map in a dedicated `src/lib/<domain>/constants.ts` and import it from BOTH the route validator and the UI. PR 3's first simplify pass caught `REMOTE_PREFERENCES` and `CURRENCIES` duplicated between `src/app/api/profile/career/route.ts` and `src/app/(app)/profile/career/page.tsx`. Fix was `src/lib/profile/constants.ts` exporting `REMOTE_PREFERENCES`, `COMPENSATION_CURRENCIES`, and `isRemotePreference`.
+
+## Form type from schema via `Omit`, not a hand-rolled parallel interface
+
+Instead of writing `interface CareerProfileForm { fullName: string | null; ... }` (which will drift from the schema), derive it:
+
+```ts
+type CareerProfileForm = Omit<
+  UserProfileRow,
+  "id" | "userId" | "createdAt" | "updatedAt"
+> & {
+  remotePreference: RemotePreference | null;
+};
+```
+
+The intersection adds back any nullability or enum-narrowing the UI needs. When a column is added to the table, the form type updates automatically — no second file to touch.
+
+## Client-component dashboards can't easily do server-side DB reads
+
+`src/app/(app)/dashboard/page.tsx` is `"use client"` with many client-only hooks, so you can't drop a server-side profile fetch into it without splitting it into a server shell + client body. For a completeness card on an existing client dashboard, reuse the API route and accept the extra HTTP round trip. Don't rewrite the whole dashboard as a drive-by — defer the shell/body split to a dedicated PR.
+
+## Grep for planning-comment leakage before every simplify pass
+
+Code-writing agents and critic cycles tend to leave behind:
+
+- Task-reference tags like `(P2.2.x)`, `(PR 3)`, `TODO(P3)`
+- Cross-agent planning comments like `// Agent A's row`, `// Agent B will handle this`
+- Deferral notes like `// out of scope for PR 3`, `// lands in PR 12`
+
+Before declaring a PR done, grep for `\(P\d+\.\d+\)`, `Agent [A-Z]`, `out of scope for PR`, and `lands in PR` and scrub any hits. These are pure noise in the diff and should never ship. PR 3's simplify pass found 7 `(P2.2.x)` tags still in JSX after the second critic gave "NO GAPS".
