@@ -383,6 +383,52 @@ export const tailoredResumes = pgTable("tailored_resumes", {
 
 export type TailoredResumeRow = typeof tailoredResumes.$inferSelect;
 
+export const batchJobs = pgTable("batch_jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  status: text("status").default("pending").notNull(), // pending | running | completed | failed
+  totalItems: integer("total_items").default(0).notNull(),
+  completedItems: integer("completed_items").default(0).notNull(),
+  failedItems: integer("failed_items").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (t) => [index("batch_jobs_user_id_idx").on(t.userId)]);
+
+export const batchJobItems = pgTable("batch_job_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  batchId: uuid("batch_id")
+    .references(() => batchJobs.id)
+    .notNull(),
+  url: text("url").notNull(),
+  status: text("status").default("pending").notNull(), // pending | fetching | extracted | scored | failed
+  matchId: uuid("match_id"),
+  jdCacheKey: text("jd_cache_key"),
+  error: text("error"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+}, (t) => [
+  index("batch_job_items_batch_id_idx").on(t.batchId),
+  index("batch_job_items_status_idx").on(t.status),
+]);
+
+export const jdCache = pgTable("jd_cache", {
+  /** sha256 of the URL — primary key so upserts are cheap. */
+  urlHash: text("url_hash").primaryKey(),
+  url: text("url").notNull(),
+  title: text("title"),
+  company: text("company"),
+  description: text("description").notNull(),
+  requirements: text("requirements").array().default([]).notNull(),
+  location: text("location"),
+  remotePolicy: text("remote_policy"),
+  compensationText: text("compensation_text"),
+  fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+});
+
+export type BatchJobRow = typeof batchJobs.$inferSelect;
+export type BatchJobItemRow = typeof batchJobItems.$inferSelect;
+export type JdCacheRow = typeof jdCache.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),
