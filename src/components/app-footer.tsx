@@ -12,6 +12,7 @@ export function AppFooter() {
           <a href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</a>
           <a href="/matches" className="hover:text-foreground transition-colors">Matches</a>
           <a href="/settings" className="hover:text-foreground transition-colors">Settings</a>
+          <a href="/legal/third-party" className="hover:text-foreground transition-colors">Matching engine inspired by career-ops (MIT)</a>
         </div>
       </div>
     </footer>
