@@ -83,3 +83,54 @@ Files whose logic is derived from an MIT-licensed source (e.g. career-ops) need 
 ## Legal pages — read from the source of truth
 
 `src/app/legal/third-party/page.tsx` should `fs.readFileSync` the repo's `THIRD_PARTY_LICENSES.md` rather than duplicating the MIT text inline. The simplify pass caught the duplication in PR 1.
+
+---
+
+# PR 2 lessons (`feat/pr2-grading-scoring-prompt`: grade calculator, 8-dim scoring, weighted overall)
+
+## Backward-compat for new optional LLM fields — default to NEUTRAL, not zero
+
+When adding score dimensions to an LLM prompt+parser, missing fields from older/fallback provider responses must default to a **neutral mid-band value** (e.g. `12` on a 0–25 scale), NOT `0`. A zero default silently breaks backward compatibility — it drags weighted overall scores down by tens of points whenever the provider omits a field. Penalty dimensions (e.g. `redFlagScore`, where higher = worse) are the exception and should default to `0`.
+
+PR 2's first critic caught `parseScoreJSON` defaulting all 8 new dimensions to 0, dropping weighted overall by ~40 points on backward-compat inputs. Fix was a `clamp25(n, fallback = 12)` helper for positive dimensions and `clamp25(n, 0)` for penalty dimensions. This rule is general enough that it's also been promoted to `AGENTS.md`.
+
+## Cached LLM-enrichment columns must be read, written, and USED
+
+When adding a DB column populated by an LLM call (e.g. `yc_companies.archetype`), the consumer must:
+
+1. **Prefer the cached value** — check the column before firing the detection LLM call.
+2. **Write back on miss** — when the column is null and you compute a value, persist it so the next scan hits the cache. In the route, batch the writebacks with `Promise.all` over the misses.
+3. **Actually thread the value into the downstream prompt** — otherwise you pay the LLM cost on every scan without ever improving scoring quality.
+
+PR 2 initially did (1) only — the simplify gate caught that the cached archetype was never passed to `scoreMatch`'s prompt, and there was no writeback path. The cache would never fill, and even when it did, the LLM wouldn't see it.
+
+## Multiple divergent `CompanyData` / `CompanyInput` shapes
+
+This codebase has several scoring entry points, each with its own slightly-different company DTO:
+
+- `src/lib/ai/score-match.ts` (`CompanyData`)
+- `src/lib/ai/free-inference.ts`
+- `src/trigger/scorer.ts`
+- `src/lib/agents/agents/scoring.ts`
+
+When adding a field (like `archetype`) to one, grep all of them to avoid divergence. This is pre-existing tech debt — consolidating into a shared DTO is a future PR's job, not a drive-by.
+
+## Drizzle insert with optional jsonb — `undefined` is fine
+
+`db.insert(matchScores).values({ gradeBreakdown: undefined })` works on a nullable jsonb column. No need for `?? null` guards. But: if you add a new column to the table, the `ScoredRow` type that feeds the insert spread must be widened too, AND the insert call's `.values({...row, newCol: row.newCol})` spread must explicitly include it. PR 2's second critic caught the insert site never persisting `grade`/`gradeBreakdown` because the type was too narrow and the spread didn't pick them up.
+
+## Raw-SQL SELECTs in `src/app/api/score-matches/route.ts`
+
+This route uses `db.execute(sql\`SELECT ... FROM yc_companies\`)` with a hand-typed result interface rather than drizzle's query builder. Adding a new column requires updating BOTH the SELECT clause AND the TypeScript row-type assertion. Easy to forget — the type will still compile if you add the column to the interface but not the SQL, because `db.execute` returns `unknown`-ish rows. Always update both.
+
+## Provider fallback chain in `score-match.ts` — heuristic must emit ALL fields
+
+Fallback order is: local fine-tuned model → Groq → Claude → OpenAI → **local heuristic**. The local heuristic is the bottom of the chain and will run when every provider fails, so it must emit **every** field the parser expects, including ones added in later PRs. When adding a new scoring dimension, update both the LLM prompt templates AND `localHeuristic`. Otherwise a total-provider-failure scan silently produces malformed rows.
+
+## Strong-type shared enums across module boundaries
+
+`archetype` started as `string | null` in `CompanyData`, `MatchResult`, and the route's row type. The simplify pass promoted it to `RoleArchetype | null` everywhere. Whenever a value comes from a known `as const` tuple (like `ROLE_ARCHETYPES`), type it as the union across every interface it crosses — the extra imports are worth catching typos at compile time.
+
+## Don't duplicate instructions between SYSTEM_PROMPT and user prompt
+
+`buildPrompt` in `score-match.ts` initially repeated "Score all 8 dimensions" even though `SYSTEM_PROMPT` already said it. That's pure token waste on every scoring call. When editing AI prompts, diff against the system prompt and strip any redundant instructions from the user-prompt builder.

@@ -15,6 +15,13 @@
       "when": 1775836593780,
       "tag": "0001_career_ops_scoring",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775837304150,
+      "tag": "0002_grading_columns",
+      "breakpoints": true
     }
   ]
 }

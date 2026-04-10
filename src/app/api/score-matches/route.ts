@@ -15,7 +15,9 @@ import {
   generateEmbedding,
   buildResumeEmbeddingText,
 } from "@/lib/ai/embeddings";
-import type { ParsedResume } from "@/lib/db/schema";
+import type { GradeBreakdown, ParsedResume } from "@/lib/db/schema";
+import type { Grade } from "@/lib/ai/grade-calculator";
+import type { RoleArchetype } from "@/lib/ai/archetype-detector";
 
 /*
  * Scoring weights (out of 100):
@@ -244,7 +246,7 @@ export async function POST(request: NextRequest) {
         id, name, slug, batch, description, one_liner, long_description,
         industries, tags, tech_stack, stage, status, team_size,
         website, yc_url, logo_url, location, is_hiring, is_top_company,
-        hiring_signals,
+        hiring_signals, archetype,
         1 - (embedding <=> ${vectorStr}::vector) as similarity
       FROM yc_companies
       WHERE embedding IS NOT NULL
@@ -271,6 +273,7 @@ export async function POST(request: NextRequest) {
       is_hiring: boolean;
       is_top_company: boolean;
       hiring_signals: { has_careers_page?: boolean; recent_job_posts?: number; eng_roles_open?: boolean } | null;
+      archetype: RoleArchetype | null;
       similarity: number;
     }>;
 
@@ -281,7 +284,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let results: {
+    type ScoredRow = {
       companyId: string;
       overallScore: number;
       techScore: number;
@@ -289,7 +292,16 @@ export async function POST(request: NextRequest) {
       hiringScore: number;
       stageScore: number;
       explanation: string;
-    }[];
+      // Populated only on the rerank (LLM) path; nullable in DB.
+      compensationScore?: number;
+      cultureScore?: number;
+      redFlagScore?: number;
+      northStarScore?: number;
+      archetype?: RoleArchetype | null;
+      grade?: Grade;
+      gradeBreakdown?: GradeBreakdown;
+    };
+    let results: ScoredRow[];
 
     if (rerank) {
       // Step 3 (opt-in): LLM rerank top 30
@@ -304,6 +316,7 @@ export async function POST(request: NextRequest) {
           techStack: c.tech_stack,
           stage: c.stage,
           batch: c.batch,
+          archetype: c.archetype ?? null,
           hiringSignals: c.hiring_signals,
         }))
       );
@@ -314,6 +327,24 @@ export async function POST(request: NextRequest) {
         const sim = simMap.get(r.companyId) || 0;
         r.overallScore = Math.round(r.overallScore * 0.8 + sim * 100 * 0.2);
       }
+
+      // Backfill yc_companies.archetype for any company that was just detected
+      // by scoreMatch — avoids re-running detection on subsequent scans.
+      const archetypeCacheMisses = llmResults.filter((r) => {
+        const cached = candidates.find((c) => c.id === r.companyId)?.archetype;
+        return !cached && r.archetype;
+      });
+      if (archetypeCacheMisses.length > 0) {
+        await Promise.all(
+          archetypeCacheMisses.map((r) =>
+            db
+              .update(ycCompanies)
+              .set({ archetype: r.archetype! })
+              .where(eq(ycCompanies.id, r.companyId))
+          )
+        );
+      }
+
       results = llmResults;
     } else {
       // Default: heuristic scoring from similarity + structured overlap (free)
@@ -337,6 +368,13 @@ export async function POST(request: NextRequest) {
             hiringScore: result.hiringScore,
             stageScore: result.stageScore,
             explanation: result.explanation,
+            compensationScore: result.compensationScore,
+            cultureScore: result.cultureScore,
+            redFlagScore: result.redFlagScore,
+            northStarScore: result.northStarScore,
+            archetype: result.archetype ?? null,
+            grade: result.grade,
+            gradeBreakdown: result.gradeBreakdown,
           }))
         );
       }
