@@ -9,14 +9,34 @@
 import { chatCompletion } from "@/lib/ai/client";
 import type { ParsedResume } from "@/lib/db/schema";
 
-export type InterviewPhase = "introduction" | "background" | "technical" | "projects" | "behavioral" | "closing";
+export type InterviewPhase =
+  | "introduction"
+  | "technical-deep-dive"
+  | "system-design"
+  | "behavioral"
+  | "culture-fit"
+  | "closing";
 export type CompanyQuizPhase = "mission" | "product" | "market" | "culture" | "whyyou";
+
+export interface StarAnswer {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+  reflection: string;
+}
 
 export interface InterviewQuestion {
   phase: InterviewPhase;
   question: string;
   suggestedAnswer: string;
   tip: string;
+  /** Present on behavioral / culture-fit questions where a STAR+Reflection
+   * story is the expected answer shape. Not every question is a STAR one
+   * (e.g. intro & closing), so this is optional. */
+  star?: StarAnswer;
+  /** Concrete JD requirement this question targets, when known. */
+  jdRequirement?: string;
 }
 
 export interface CompanyQuizQuestion {
@@ -28,6 +48,7 @@ export interface CompanyQuizQuestion {
 
 export interface InterviewPrepResult {
   companyName: string;
+  archetype: string | null;
   questions: InterviewQuestion[];
   interviewStyle: "technical" | "mixed" | "behavioral";
 }
@@ -63,43 +84,58 @@ function determineStyle(scores: ScoreContext): "technical" | "mixed" | "behavior
   return "behavioral";
 }
 
-const SYSTEM_PROMPT = `You are an expert interview coach who prepares candidates for startup interviews.
-You generate realistic interview questions that a company would actually ask, tailored to the candidate's background and the company's needs.
+const SYSTEM_PROMPT = `You are an expert interview coach who prepares candidates for realistic company interviews.
+You generate the questions a real interviewer would actually ask for a specific role and archetype, and for behavioral / culture questions you produce a STAR+Reflection answer grounded in the candidate's real experience.
 
 You must output ONLY valid JSON matching this schema:
 {
   "questions": [
     {
-      "phase": "introduction" | "background" | "technical" | "projects" | "behavioral" | "closing",
+      "phase": "introduction" | "technical-deep-dive" | "system-design" | "behavioral" | "culture-fit" | "closing",
       "question": "The interview question",
       "suggestedAnswer": "A strong suggested answer using the candidate's actual experience",
-      "tip": "A brief coaching tip for delivering this answer"
+      "tip": "A brief coaching tip for delivering this answer",
+      "jdRequirement": "The specific JD requirement this question targets, when applicable",
+      "star": {
+        "situation": "The concrete context from the candidate's real experience",
+        "task": "What the candidate specifically owned",
+        "action": "The steps the candidate took — specific and measurable",
+        "result": "The outcome, with metrics where possible",
+        "reflection": "What the candidate learned and how they'd apply it here"
+      }
     }
   ]
 }
 
-Interview flow phases (generate questions in this order):
-1. **introduction** (2 questions) — "Tell me about yourself" style openers, elevator pitch practice
-2. **background** (3 questions) — Experience deep-dives, career trajectory, why this company
-3. **technical** (4-5 questions) — Technical skills, system design, problem-solving relevant to the role
-4. **projects** (3 questions) — Past project walkthroughs, impact, challenges overcome
-5. **behavioral** (3 questions) — Teamwork, leadership, conflict resolution, startup culture fit
-6. **closing** (2 questions) — Questions the candidate should ask, salary/next-steps handling
+Career-ops 6-phase interview flow (generate questions in this order):
+1. **introduction** (2 questions) — motivation, elevator pitch, "why this company". NO star object.
+2. **technical-deep-dive** (4 questions) — role-specific technical depth tied to JD requirements. star optional.
+3. **system-design** (2-3 questions) — architecture / scaling / trade-offs. star optional.
+4. **behavioral** (3 questions) — leadership, ownership, conflict. EVERY behavioral question MUST include a full star object.
+5. **culture-fit** (2 questions) — values alignment, working style. star required.
+6. **closing** (2 questions) — smart questions to ask the interviewer, next-step handling. NO star object.
+
+Archetype tailoring:
+- **solutions-architect / forward-deployed** → heavier system-design, more client-facing behavioral
+- **platform-llmops / agentic-automation** → deeper technical-deep-dive on infra & evals
+- **technical-pm / transformation-lead** → lighter system-design, more leadership behavioral + culture
 
 Rules:
-- Use the candidate's ACTUAL experience, skills, and projects in suggested answers — never generic filler
-- If the candidate's background ALIGNS with the company (same industry/tech), go deeper technically
-- If the candidate's background DOES NOT align, focus on transferable skills and learning agility
-- For startup interviews, include culture-fit and ownership-mentality questions
-- Suggested answers should be specific, use the STAR method where appropriate, and reference real details from the resume
-- Tips should be actionable and concise (one sentence)
-- Generate 17-20 questions total across all phases`;
+- Use the candidate's ACTUAL experience, skills, and projects — never generic filler
+- Every STAR story must be specific: real company/project names from the resume, real metrics
+- NEVER fabricate experience — if something doesn't exist in the resume, choose a different story
+- For each technical-deep-dive & behavioral question, map to a specific JD requirement in jdRequirement when one applies
+- Include one red-flag / "tell me about a time you failed" style behavioral question with a genuine reflection
+- Tips should be actionable and one sentence
+- Generate 14-16 questions total across all phases`;
 
 function buildPrompt(
   resume: ParsedResume,
   company: CompanyContext,
   scores: ScoreContext,
-  style: "technical" | "mixed" | "behavioral"
+  style: "technical" | "mixed" | "behavioral",
+  archetype: string | null,
+  jdRequirements: string[]
 ): string {
   const skills = [
     ...resume.skills.languages,
@@ -143,6 +179,9 @@ Industries: ${(company.industries || []).join(", ")}
 Overall match: ${scores.overallScore}/100
 Tech alignment: ${scores.techScore}/25
 Industry alignment: ${scores.industryScore}/25
+Role archetype: ${archetype || "generalist"}
+Key JD requirements to target:
+${jdRequirements.length > 0 ? jdRequirements.map((r) => `  - ${r}`).join("\n") : "  (infer from company domain)"}
 Match explanation: ${scores.explanation || "N/A"}
 Interview style to emphasize: ${style.toUpperCase()}
 ${style === "technical" ? "The candidate's background strongly aligns with this company — go deep on technical questions specific to the company's stack and domain." : ""}
@@ -157,17 +196,23 @@ export async function generateInterviewPrep(
   resume: ParsedResume,
   company: CompanyContext,
   scores: ScoreContext,
-  userId?: string
+  opts?: {
+    archetype?: string | null;
+    jdRequirements?: string[];
+    userId?: string;
+  }
 ): Promise<InterviewPrepResult> {
   const style = determineStyle(scores);
-  const prompt = buildPrompt(resume, company, scores, style);
+  const archetype = opts?.archetype ?? null;
+  const jdRequirements = opts?.jdRequirements ?? [];
+  const prompt = buildPrompt(resume, company, scores, style, archetype, jdRequirements);
 
   const raw = await chatCompletion({
     tier: "smart",
     system: SYSTEM_PROMPT,
     prompt,
     maxTokens: 4096,
-    userId,
+    userId: opts?.userId,
   });
 
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -178,17 +223,41 @@ export async function generateInterviewPrep(
   const parsed = JSON.parse(jsonMatch[0]);
   const questions: InterviewQuestion[] = parsed.questions;
 
-  // Ensure proper phase ordering
-  const phaseOrder = ["introduction", "background", "technical", "projects", "behavioral", "closing"] as const;
+  const phaseOrder = [
+    "introduction",
+    "technical-deep-dive",
+    "system-design",
+    "behavioral",
+    "culture-fit",
+    "closing",
+  ] as const;
   questions.sort(
     (a, b) => phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase)
   );
 
   return {
     companyName: company.name,
+    archetype,
     questions,
     interviewStyle: style,
   };
+}
+
+/**
+ * Collapse a generated prep session's behavioral & culture-fit STAR answers
+ * into persistable story-bank rows. Used when a user explicitly saves a
+ * prep session so they can reuse stories across similar roles.
+ */
+export function extractStarStories(
+  prep: InterviewPrepResult
+): Array<StarAnswer & { jdRequirement: string; archetype: string | null }> {
+  return prep.questions
+    .filter((q) => q.star && (q.phase === "behavioral" || q.phase === "culture-fit"))
+    .map((q) => ({
+      ...(q.star as StarAnswer),
+      jdRequirement: q.jdRequirement || q.question,
+      archetype: prep.archetype,
+    }));
 }
 
 /* ── Company Quiz ── */

@@ -74,6 +74,8 @@ export async function POST(req: NextRequest) {
           explanation: null,
         };
 
+    const archetype = score?.archetype ?? company.archetype ?? null;
+
     const result = await generateInterviewPrep(
       resume.parsedData,
       {
@@ -85,7 +87,7 @@ export async function POST(req: NextRequest) {
         batch: company.batch,
       },
       scoreContext,
-      user.id
+      { archetype, userId: user.id }
     );
 
     return NextResponse.json(result);
