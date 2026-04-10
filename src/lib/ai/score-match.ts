@@ -12,10 +12,10 @@
  * Scoring framework adapted from career-ops (MIT). See THIRD_PARTY_LICENSES.md.
  */
 
-import type { GradeBreakdown, ParsedResume } from "@/lib/db/schema";
+import type { GradeBreakdown, ParsedResume, UserProfileRow } from "@/lib/db/schema";
 import { logLlmCall } from "./log";
 import { detectArchetype, type RoleArchetype } from "./archetype-detector";
-import { calculateGrade, gradeFromOverall, gradeRecommendation, type Grade } from "./grade-calculator";
+import { gradeFromDimension, gradeFromOverall, gradeRecommendation, type Grade } from "./grade-calculator";
 
 interface CompanyData {
   id: string;
@@ -474,7 +474,8 @@ function computeOverall(scores: ScoreOutput): number {
 
 export async function scoreMatch(
   resume: ParsedResume,
-  company: CompanyData
+  company: CompanyData,
+  profile?: UserProfileRow | null
 ): Promise<MatchResult> {
   const prompt = buildPrompt(resume, company);
 
@@ -486,6 +487,18 @@ export async function scoreMatch(
   if (!scores) scores = await callClaude(prompt);
   if (!scores) scores = await callOpenAI(prompt);
   if (!scores) scores = localHeuristic(resume, company);
+
+  // Profile-aware archetype boost: if the company's role matches one of
+  // the candidate's target archetypes, lift northStarScore by +8 (cap 25).
+  if (
+    profile &&
+    Array.isArray(profile.targetArchetypes) &&
+    profile.targetArchetypes.length > 0 &&
+    company.archetype &&
+    profile.targetArchetypes.includes(company.archetype)
+  ) {
+    scores.northStarScore = Math.min(25, scores.northStarScore + 8);
+  }
 
   // Prefer the cached company-level archetype (yc_companies.archetype is
   // populated at ingest); only fall back to LLM detection if missing,
@@ -506,18 +519,17 @@ export async function scoreMatch(
   const overallScore = computeOverall(scores);
   const grade = gradeFromOverall(overallScore, 100);
   const recommendation = gradeRecommendation(grade);
-  const grade25 = (s: number) => calculateGrade((s / 25) * 5);
   const gradeBreakdown: GradeBreakdown = {
-    tech: grade25(scores.techScore),
-    industry: grade25(scores.industryScore),
-    stage: grade25(scores.stageScore),
-    hiring: grade25(scores.hiringScore),
-    compensation: grade25(scores.compensationScore),
-    culture: grade25(scores.cultureScore),
-    northStar: grade25(scores.northStarScore),
+    tech: gradeFromDimension(scores.techScore),
+    industry: gradeFromDimension(scores.industryScore),
+    stage: gradeFromDimension(scores.stageScore),
+    hiring: gradeFromDimension(scores.hiringScore),
+    compensation: gradeFromDimension(scores.compensationScore),
+    culture: gradeFromDimension(scores.cultureScore),
+    northStar: gradeFromDimension(scores.northStarScore),
     // redFlag is inverted: higher raw = MORE concerns. Flip before grading
     // so a "B" on redFlag means "few concerns", not "few good things".
-    redFlag: grade25(25 - scores.redFlagScore),
+    redFlag: gradeFromDimension(25 - scores.redFlagScore),
   };
 
   return {
@@ -544,6 +556,7 @@ export async function scoreMatch(
 export async function scoreMatchesBatch(
   resume: ParsedResume,
   companies: CompanyData[],
+  profile?: UserProfileRow | null,
   concurrency = 5
 ): Promise<MatchResult[]> {
   const results: MatchResult[] = [];
@@ -551,7 +564,7 @@ export async function scoreMatchesBatch(
   for (let i = 0; i < companies.length; i += concurrency) {
     const batch = companies.slice(i, i + concurrency);
     const batchResults = await Promise.all(
-      batch.map((company) => scoreMatch(resume, company))
+      batch.map((company) => scoreMatch(resume, company, profile))
     );
     results.push(...batchResults);
 

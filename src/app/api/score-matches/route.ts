@@ -6,6 +6,7 @@ import {
   matchScores,
   resumeEmbeddings,
   documents,
+  userProfiles,
 } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { scoreMatchesBatch } from "@/lib/ai/score-match";
@@ -306,6 +307,13 @@ export async function POST(request: NextRequest) {
     if (rerank) {
       // Step 3 (opt-in): LLM rerank top 30
       const toScore = candidates.slice(0, 30);
+
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, user.id))
+        .limit(1);
+
       const llmResults = await scoreMatchesBatch(
         parsed,
         toScore.map((c) => ({
@@ -318,7 +326,8 @@ export async function POST(request: NextRequest) {
           batch: c.batch,
           archetype: c.archetype ?? null,
           hiringSignals: c.hiring_signals,
-        }))
+        })),
+        profile ?? null
       );
 
       // Blend LLM score with similarity

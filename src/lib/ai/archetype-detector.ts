@@ -33,6 +33,15 @@ export const ARCHETYPE_DESCRIPTIONS: Record<RoleArchetype, string> = {
     "Enterprise change leadership driving AI adoption: operating model redesign, stakeholder alignment, and organizational rollout.",
 };
 
+export const ARCHETYPE_LABELS: Record<RoleArchetype, string> = {
+  "platform-llmops": "Platform / LLMOps",
+  "agentic-automation": "Agentic Automation",
+  "technical-pm": "Technical PM",
+  "solutions-architect": "Solutions Architect",
+  "forward-deployed": "Forward-Deployed",
+  "transformation-lead": "Transformation Lead",
+};
+
 export function buildArchetypeDetectionPrompt(jobDescription: string): string {
   const archetypeList = ROLE_ARCHETYPES.map(
     (a) => `- ${a}: ${ARCHETYPE_DESCRIPTIONS[a]}`
