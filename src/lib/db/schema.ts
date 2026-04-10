@@ -223,6 +223,8 @@ export const userPreferences = pgTable("user_preferences", {
   notifyOnEmailReplies: boolean("notify_on_email_replies").default(true).notNull(),
   preferredProvider: aiProviderEnum("preferred_provider"),
   scoreWeights: jsonb("score_weights").$type<ScoreWeights>(),
+  titleFilterPositive: text("title_filter_positive").array(),
+  titleFilterNegative: text("title_filter_negative").array(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -290,6 +292,57 @@ export const userProfiles = pgTable("user_profiles", {
 }, (t) => [index("user_profiles_user_id_idx").on(t.userId)]);
 
 export type UserProfileRow = typeof userProfiles.$inferSelect;
+
+export const atsTypeEnum = pgEnum("ats_type", ["greenhouse", "ashby", "lever", "custom"]);
+
+export const portals = pgTable("portals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  careersUrl: text("careers_url").notNull(),
+  apiEndpoint: text("api_endpoint"),
+  atsType: atsTypeEnum("ats_type").notNull(),
+  scanMethod: text("scan_method"),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => [
+  index("portals_user_id_idx").on(t.userId),
+  index("portals_ats_type_idx").on(t.atsType),
+]);
+
+export const portalJobs = pgTable("portal_jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  portalId: uuid("portal_id")
+    .references(() => portals.id)
+    .notNull(),
+  title: text("title").notNull(),
+  url: text("url").notNull().unique(),
+  description: text("description"),
+  location: text("location"),
+  postedAt: timestamp("posted_at"),
+  discoveredAt: timestamp("discovered_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+}, (t) => [
+  index("portal_jobs_portal_id_idx").on(t.portalId),
+  index("portal_jobs_discovered_at_idx").on(t.discoveredAt),
+]);
+
+export const portalScanHistory = pgTable("portal_scan_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  portalId: uuid("portal_id")
+    .references(() => portals.id)
+    .notNull(),
+  scannedAt: timestamp("scanned_at").defaultNow().notNull(),
+  jobsFound: integer("jobs_found").default(0).notNull(),
+  newJobs: integer("new_jobs").default(0).notNull(),
+  error: text("error"),
+}, (t) => [index("portal_scan_history_portal_id_idx").on(t.portalId)]);
+
+export type PortalRow = typeof portals.$inferSelect;
+export type PortalJobRow = typeof portalJobs.$inferSelect;
+export type PortalScanHistoryRow = typeof portalScanHistory.$inferSelect;
 
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

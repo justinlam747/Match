@@ -29,6 +29,13 @@
       "when": 1775838518296,
       "tag": "0003_user_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775840524377,
+      "tag": "0004_portals",
+      "breakpoints": true
     }
   ]
 }
