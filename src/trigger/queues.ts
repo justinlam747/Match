@@ -23,3 +23,9 @@ export const outreachQueue = queue({
   name: "outreach",
   concurrencyLimit: 1,
 });
+
+/** Rate-limited queue for scanning external ATS portals */
+export const portalScanQueue = queue({
+  name: "portal-scan",
+  concurrencyLimit: 3,
+});

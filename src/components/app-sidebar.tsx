@@ -18,6 +18,7 @@ import {
   MessageSquareText,
   Mail,
   Bot,
+  Building2,
   Shield,
   Settings,
   User,
@@ -40,6 +41,7 @@ const baseLinks = [
   { href: "/interview", label: "Interview", icon: MessageSquareText },
   { href: "/emails", label: "Emails", icon: Mail },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/portals", label: "Portals", icon: Building2 },
 ];
 
 export function AppSidebar({ userName, userAvatar, userEmail, isAdmin }: AppSidebarProps) {
