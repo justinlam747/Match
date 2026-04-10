@@ -145,6 +145,8 @@ export const matchScores = pgTable("match_scores", {
   cultureScore: real("culture_score"),
   redFlagScore: real("red_flag_score"),
   northStarScore: real("north_star_score"),
+  grade: text("grade"),
+  gradeBreakdown: jsonb("grade_breakdown").$type<GradeBreakdown>(),
   explanation: text("explanation"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [
@@ -337,4 +339,17 @@ export interface ScoreWeights {
   culture?: number;
   redFlag?: number;
   northStar?: number;
+}
+
+export type Grade = "A" | "B" | "C" | "D" | "E" | "F";
+
+export interface GradeBreakdown {
+  tech?: Grade;
+  industry?: Grade;
+  stage?: Grade;
+  hiring?: Grade;
+  compensation?: Grade;
+  culture?: Grade;
+  redFlag?: Grade;
+  northStar?: Grade;
 }

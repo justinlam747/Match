@@ -3,3 +3,13 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+# Neutral defaults for new optional LLM fields
+
+When adding fields to an LLM prompt+parser (scoring dimensions, extracted properties, etc.), missing fields in older/fallback provider responses MUST default to a **neutral mid-band value**, NOT `0`. A zero default silently breaks backward compatibility by dragging weighted aggregates down whenever the provider omits the field.
+
+- Positive-signal dimensions on a 0–25 scale → default to `12` (or similar mid-band)
+- Positive-signal dimensions on a 0–5 scale → default to `3`
+- Penalty / red-flag dimensions (higher = worse) → default to `0` (the only exception)
+
+When in doubt, write a small `clamp(n, fallback)` helper and pass the fallback explicitly at every call site so the intent is visible in code review. See `tasks/lessons.md` PR 2 section for the incident that motivated this rule.
