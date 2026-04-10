@@ -19,6 +19,7 @@ import {
   Mail,
   Bot,
   Building2,
+  Layers,
   Shield,
   Settings,
   User,
@@ -42,6 +43,7 @@ const baseLinks = [
   { href: "/emails", label: "Emails", icon: Mail },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/portals", label: "Portals", icon: Building2 },
+  { href: "/batch", label: "Batch", icon: Layers },
 ];
 
 export function AppSidebar({ userName, userAvatar, userEmail, isAdmin }: AppSidebarProps) {
