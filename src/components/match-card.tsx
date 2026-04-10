@@ -46,6 +46,7 @@ export interface MatchData {
   archetype?: RoleArchetype | null;
   grade?: Grade | null;
   gradeBreakdown?: GradeBreakdown | null;
+  matchId?: string;
 }
 
 interface MatchCardProps {
@@ -317,17 +318,28 @@ export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProp
           </p>
 
           {/* Footer */}
-          {onViewDetail && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetail(match);
-              }}
-              className="text-xs text-primary hover:underline"
-            >
-              View details
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {onViewDetail && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetail(match);
+                }}
+                className="text-xs text-primary hover:underline"
+              >
+                Quick view
+              </button>
+            )}
+            {match.matchId && (
+              <a
+                href={`/matches/${match.matchId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs text-primary hover:underline"
+              >
+                Full report →
+              </a>
+            )}
+          </div>
         </CardContent>
       </Card>
     </TooltipProvider>

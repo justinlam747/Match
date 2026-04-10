@@ -7,6 +7,12 @@ import { MatchCard, type MatchData } from "@/components/match-card";
 import { CompanyDetail } from "@/components/company-detail";
 import { toast } from "sonner";
 import {
+  ARCHETYPE_LABELS,
+  ROLE_ARCHETYPES,
+  type RoleArchetype,
+} from "@/lib/ai/archetype-detector";
+import type { Grade } from "@/lib/ai/grade-calculator";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,8 +34,29 @@ export default function MatchesPage() {
   const [sortBy, setSortBy] = useState("overall");
   const [minScore, setMinScore] = useState("0");
   const [batchFilter, setBatchFilter] = useState<string | null>(null);
+  const [gradeFilter, setGradeFilter] = useState<Set<Grade>>(new Set());
+  const [archetypeFilter, setArchetypeFilter] = useState<Set<RoleArchetype>>(new Set());
+  const [hideRedFlags, setHideRedFlags] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const [detailMatch, setDetailMatch] = useState<MatchData | null>(null);
+
+  const toggleGrade = useCallback((g: Grade) => {
+    setGradeFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(g)) next.delete(g);
+      else next.add(g);
+      return next;
+    });
+  }, []);
+
+  const toggleArchetype = useCallback((a: RoleArchetype) => {
+    setArchetypeFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(a)) next.delete(a);
+      else next.add(a);
+      return next;
+    });
+  }, []);
 
   // Press "/" to focus search
   useEffect(() => {
@@ -53,6 +80,7 @@ export default function MatchesPage() {
         setMatches(
           data.matches.map((m: MatchRow) => ({
             ...m,
+            matchId: m.matchId,
             selected: m.overallScore >= 60,
           }))
         );
@@ -92,6 +120,18 @@ export default function MatchesPage() {
         );
       })
       .filter((m) => m.overallScore >= parseInt(minScore))
+      .filter((m) => {
+        if (gradeFilter.size === 0) return true;
+        return m.grade ? gradeFilter.has(m.grade) : false;
+      })
+      .filter((m) => {
+        if (archetypeFilter.size === 0) return true;
+        return m.archetype ? archetypeFilter.has(m.archetype) : false;
+      })
+      .filter((m) => {
+        if (!hideRedFlags) return true;
+        return !(typeof m.redFlagScore === "number" && m.redFlagScore >= 15);
+      })
       .sort((a, b) => {
         switch (sortBy) {
           case "tech": return b.techScore - a.techScore;
@@ -101,7 +141,7 @@ export default function MatchesPage() {
           default: return b.overallScore - a.overallScore;
         }
       }),
-    [matches, search, sortBy, minScore, batchFilter]
+    [matches, search, sortBy, minScore, batchFilter, gradeFilter, archetypeFilter, hideRedFlags]
   );
 
   const selectedIds = useMemo(
@@ -311,6 +351,55 @@ export default function MatchesPage() {
             60+
           </button>
         </div>
+      </div>
+
+      {/* Grade + archetype + red-flag filters */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground mr-1">
+            Grade
+          </span>
+          {(["A", "B", "C", "D", "E", "F"] as Grade[]).map((g) => (
+            <button
+              key={g}
+              onClick={() => toggleGrade(g)}
+              className={`h-6 w-6 rounded text-[11px] font-semibold transition-colors ${
+                gradeFilter.has(g)
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 flex-wrap">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground mr-1">
+            Archetype
+          </span>
+          {ROLE_ARCHETYPES.map((a) => (
+            <button
+              key={a}
+              onClick={() => toggleArchetype(a)}
+              className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
+                archetypeFilter.has(a)
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {ARCHETYPE_LABELS[a]}
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none ml-auto">
+          <input
+            type="checkbox"
+            checked={hideRedFlags}
+            onChange={(e) => setHideRedFlags(e.target.checked)}
+            className="h-3.5 w-3.5"
+          />
+          Hide red flags
+        </label>
       </div>
 
       {/* Grid */}
