@@ -364,6 +364,25 @@ export const starStories = pgTable("star_stories", {
 
 export type StarStoryRow = typeof starStories.$inferSelect;
 
+export const tailoredResumes = pgTable("tailored_resumes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  matchId: uuid("match_id"),
+  sourceResumeId: uuid("source_resume_id"),
+  jdLanguage: text("jd_language").default("en").notNull(),
+  keywords: text("keywords").array().default([]).notNull(),
+  coveragePercent: integer("coverage_percent").default(0).notNull(),
+  tailoredData: jsonb("tailored_data").notNull(),
+  pdfUrl: text("pdf_url"),
+  pageSize: text("page_size").default("LETTER").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("tailored_resumes_user_id_idx").on(t.userId),
+  index("tailored_resumes_match_id_idx").on(t.matchId),
+]);
+
+export type TailoredResumeRow = typeof tailoredResumes.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),
