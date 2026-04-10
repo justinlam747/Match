@@ -99,6 +99,7 @@ export const ycCompanies = pgTable("yc_companies", {
   isHiring: boolean("is_hiring").default(false),
   isTopCompany: boolean("is_top_company").default(false),
   hiringSignals: jsonb("hiring_signals").$type<HiringSignals>(),
+  archetype: text("archetype"),
   embedding: vector("embedding"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -139,6 +140,11 @@ export const matchScores = pgTable("match_scores", {
   industryScore: real("industry_score").notNull(),
   stageScore: real("stage_score").notNull(),
   hiringScore: real("hiring_score").notNull(),
+  archetype: text("archetype"),
+  compensationScore: real("compensation_score"),
+  cultureScore: real("culture_score"),
+  redFlagScore: real("red_flag_score"),
+  northStarScore: real("north_star_score"),
   explanation: text("explanation"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [
@@ -214,6 +220,7 @@ export const userPreferences = pgTable("user_preferences", {
   notifyOnNewMatches: boolean("notify_on_new_matches").default(true).notNull(),
   notifyOnEmailReplies: boolean("notify_on_email_replies").default(true).notNull(),
   preferredProvider: aiProviderEnum("preferred_provider"),
+  scoreWeights: jsonb("score_weights").$type<ScoreWeights>(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -319,4 +326,15 @@ export interface HiringSignals {
   has_careers_page?: boolean;
   recent_job_posts?: number;
   eng_roles_open?: boolean;
+}
+
+export interface ScoreWeights {
+  tech?: number;
+  industry?: number;
+  stage?: number;
+  hiring?: number;
+  compensation?: number;
+  culture?: number;
+  redFlag?: number;
+  northStar?: number;
 }

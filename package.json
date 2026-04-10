@@ -1,6 +1,13 @@
 {
   "name": "match",
   "version": "0.1.0",
+  "credits": {
+    "career-ops": {
+      "license": "MIT",
+      "description": "Job evaluation framework that inspired YCMatch's 6-dimensional scoring engine",
+      "url": "https://github.com/career-ops/career-ops"
+    }
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -8,6 +8,13 @@
       "when": 1775003540515,
       "tag": "0000_misty_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775836593780,
+      "tag": "0001_career_ops_scoring",
+      "breakpoints": true
     }
   ]
 }

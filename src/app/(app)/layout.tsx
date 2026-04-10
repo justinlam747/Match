@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/supabase/auth-guard";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AppFooter } from "@/components/app-footer";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -37,10 +38,11 @@ export default async function AppLayout({
         isAdmin={isAdmin}
       />
       {/* Mobile: full width. Desktop: offset by sidebar width */}
-      <main className="md:pl-56 min-h-screen">
-        <div className="px-6 lg:px-10 py-8 w-full">
+      <main className="md:pl-56 min-h-screen flex flex-col">
+        <div className="px-6 lg:px-10 py-8 w-full flex-1">
           {children}
         </div>
+        <AppFooter />
       </main>
     </div>
   );
