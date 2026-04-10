@@ -491,6 +491,53 @@ export const evaluationReports = pgTable("evaluation_reports", {
 
 export type EvaluationReportRow = typeof evaluationReports.$inferSelect;
 
+export const applicationStatusEnum = pgEnum("application_status", [
+  "discovered",
+  "evaluating",
+  "ready",
+  "applied",
+  "phone-screen",
+  "technical",
+  "onsite",
+  "offer",
+  "accepted",
+  "rejected",
+  "withdrawn",
+]);
+
+export type ApplicationStatus =
+  | "discovered"
+  | "evaluating"
+  | "ready"
+  | "applied"
+  | "phone-screen"
+  | "technical"
+  | "onsite"
+  | "offer"
+  | "accepted"
+  | "rejected"
+  | "withdrawn";
+
+export const applications = pgTable("applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  matchId: uuid("match_id"),
+  portalJobId: uuid("portal_job_id"),
+  status: applicationStatusEnum("status").default("discovered").notNull(),
+  appliedAt: timestamp("applied_at"),
+  lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
+  notes: text("notes"),
+  nextStep: text("next_step"),
+  nextStepDate: timestamp("next_step_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("applications_user_id_idx").on(t.userId),
+  index("applications_status_idx").on(t.status),
+  index("applications_match_id_idx").on(t.matchId),
+]);
+
+export type ApplicationRow = typeof applications.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),

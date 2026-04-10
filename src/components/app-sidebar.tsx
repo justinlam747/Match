@@ -19,6 +19,7 @@ import {
   Mail,
   Bot,
   Building2,
+  Kanban,
   Layers,
   Shield,
   Settings,
@@ -44,6 +45,7 @@ const baseLinks = [
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/portals", label: "Portals", icon: Building2 },
   { href: "/batch", label: "Batch", icon: Layers },
+  { href: "/pipeline", label: "Pipeline", icon: Kanban },
 ];
 
 export function AppSidebar({ userName, userAvatar, userEmail, isAdmin }: AppSidebarProps) {
