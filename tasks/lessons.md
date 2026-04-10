@@ -210,3 +210,14 @@ Code-writing agents and critic cycles tend to leave behind:
 - Deferral notes like `// out of scope for PR 3`, `// lands in PR 12`
 
 Before declaring a PR done, grep for `\(P\d+\.\d+\)`, `Agent [A-Z]`, `out of scope for PR`, and `lands in PR` and scrub any hits. These are pure noise in the diff and should never ship. PR 3's simplify pass found 7 `(P2.2.x)` tags still in JSX after the second critic gave "NO GAPS".
+
+---
+
+## PR 4 lessons (`feat/pr4-profile-aware-scoring-match-card`: profile-aware scoring, match card redesign)
+
+- **Archetype taxonomy single source of truth**: labels, descriptions, and the `RoleArchetype` union all live in `src/lib/ai/archetype-detector.ts`. When adding UI for archetypes, import `ARCHETYPE_LABELS` + `ARCHETYPE_DESCRIPTIONS` — don't re-declare them in the component file.
+- **`gradeFromDimension(score, max=25)`**: reusable helper exported from `src/lib/matching/grade-calculator.ts` for converting any 0-N dimension score to an A-F letter. Use it instead of inlining `calculateGrade((score/25)*5)` or re-deriving the rescale factor in callers.
+- **Don't ship unused data plumbing**: if a computed field isn't consumed by an API response, DB column, or UI, delete it or wire it end-to-end. PR 4 deleted `belowCompensationMinimum` because it was flagged but never surfaced anywhere.
+- **Profile threading pattern**: optional `profile?: UserProfileRow` as the 3rd arg to `scoreMatch`/`scoreMatchesBatch`. API routes load the `userProfiles` row once and pass it through; the heuristic path ignores it gracefully so fallbacks keep working.
+- **Pre-compute profile adjustments BEFORE `computeOverall`**: archetype-match boosts (e.g. `northStarScore += 8`, clamped to 25) must land before the weighted formula runs so the weight naturally flows through. Never mutate dimension scores after `computeOverall` — the overall will be stale.
+- **`Record<Grade, string>` over switch**: for grade-to-className (and similar enum-to-value maps), a `Record<Grade, string>` literal is shorter, exhaustive at compile time, and avoids the switch's fallthrough footgun that PR 4 found in the old `gradeClasses` helper.

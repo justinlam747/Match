@@ -39,6 +39,11 @@ export function gradeFromOverall(overall: number, maxOverall: number): Grade {
   return calculateGrade(normalizeScore(overall, maxOverall));
 }
 
+// Per-dimension helper: dimension scores use a 0–25 scale, grades use 0–5.
+export function gradeFromDimension(score: number, max = 25): Grade {
+  return calculateGrade(normalizeScore(score, max));
+}
+
 export function gradeRecommendation(grade: Grade): string {
   if (grade === "A" || grade === "B") return "Apply now";
   if (grade === "C") return "Selective — apply if other signals are strong";
