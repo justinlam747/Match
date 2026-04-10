@@ -429,6 +429,68 @@ export type BatchJobRow = typeof batchJobs.$inferSelect;
 export type BatchJobItemRow = typeof batchJobItems.$inferSelect;
 export type JdCacheRow = typeof jdCache.$inferSelect;
 
+export interface EvaluationBlocks {
+  /** Block A — Role summary */
+  a?: {
+    archetype: string;
+    domain: string;
+    function: string;
+    seniority: string;
+    remotePolicy: string | null;
+    teamSize: string | null;
+  };
+  /** Block B — CV match mapping */
+  b?: {
+    mappings: Array<{
+      requirement: string;
+      evidence: string;
+      gap: "none" | "nice-to-have" | "hard-blocker";
+      mitigation?: string;
+    }>;
+  };
+  /** Block C — Level & strategy */
+  c?: {
+    detectedLevel: string;
+    naturalLevel: string;
+    sellUpPlan: string;
+    downlevelFallback: string;
+  };
+  /** Block D — Compensation analysis */
+  d?: {
+    marketRange: string;
+    sources: string[];
+    verdict: "below" | "within" | "above" | "unknown";
+  };
+  /** Block E — Personalization plan */
+  e?: {
+    resumeChanges: string[];
+    linkedinChanges: string[];
+  };
+  /** Block F — Interview prep */
+  f?: {
+    starStoryCount: number;
+    caseStudy: string;
+    redFlags: string[];
+  };
+}
+
+export const evaluationReports = pgTable("evaluation_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  matchId: uuid("match_id"),
+  batchItemId: uuid("batch_item_id"),
+  archetype: text("archetype"),
+  grade: text("grade"),
+  blocks: jsonb("blocks").$type<EvaluationBlocks>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("evaluation_reports_user_id_idx").on(t.userId),
+  index("evaluation_reports_match_id_idx").on(t.matchId),
+  index("evaluation_reports_batch_item_id_idx").on(t.batchItemId),
+]);
+
+export type EvaluationReportRow = typeof evaluationReports.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),
