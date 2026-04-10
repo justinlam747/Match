@@ -36,6 +36,13 @@
       "when": 1775840524377,
       "tag": "0004_portals",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775855422821,
+      "tag": "0005_star_stories",
+      "breakpoints": true
     }
   ]
 }

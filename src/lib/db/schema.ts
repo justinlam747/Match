@@ -344,6 +344,26 @@ export type PortalRow = typeof portals.$inferSelect;
 export type PortalJobRow = typeof portalJobs.$inferSelect;
 export type PortalScanHistoryRow = typeof portalScanHistory.$inferSelect;
 
+export const starStories = pgTable("star_stories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  matchId: uuid("match_id"),
+  archetype: text("archetype"),
+  jdRequirement: text("jd_requirement").notNull(),
+  situation: text("situation").notNull(),
+  task: text("task").notNull(),
+  action: text("action").notNull(),
+  result: text("result").notNull(),
+  reflection: text("reflection").notNull(),
+  tags: text("tags").array().default([]).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  index("star_stories_user_id_idx").on(t.userId),
+  index("star_stories_match_id_idx").on(t.matchId),
+]);
+
+export type StarStoryRow = typeof starStories.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),

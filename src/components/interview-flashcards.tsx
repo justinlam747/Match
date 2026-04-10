@@ -3,11 +3,21 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
+export interface FlashcardStar {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+  reflection: string;
+}
+
 export interface FlashcardQuestion {
   phase: string;
   question: string;
   suggestedAnswer: string;
   tip: string;
+  star?: FlashcardStar;
+  jdRequirement?: string;
 }
 
 interface InterviewFlashcardsProps {
