@@ -2,15 +2,6 @@
 
 AI-powered matching with 500+ YC startups. One tool for scoring, outreach, and interview prep.
 
-## Getting Started
-
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
 ## What Changed in This Branch
 
 ### Race Condition & Data Corruption Fixes
