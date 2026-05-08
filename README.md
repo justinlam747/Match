@@ -1,49 +1,19 @@
 # YC Match
 
-AI-powered matching with 500+ YC startups. One tool for scoring, outreach, and interview prep.
+YC Match is an AI-powered job search tool built for the 500+ companies in the Y Combinator portfolio. It turns the messy, repetitive process of finding and applying to startup roles into a single guided workflow: upload a resume once, get a ranked list of companies that actually fit, and move from discovery to outreach to offer without leaving the app.
 
-## Getting Started
+## What it does
 
-```bash
-npm install
-npm run dev
-```
+**Smart matching.** Every YC company is scored against your resume on a 6-dimensional fit model — skills, experience level, domain, stage, role type, and trajectory — using a fine-tuned scoring stack (local Qwen → hosted HF model → Groq/Claude/OpenAI fallback) backed by `pgvector` similarity search.
 
-Open [http://localhost:3000](http://localhost:3000).
+**Tailored outreach.** For each match, the app drafts a personalized cold email to the hiring manager and pre-fills application form responses in your voice, drawing on the specifics of your background and the company's current focus.
 
-## What Changed in This Branch
+**Application pipeline.** A kanban board tracks every application from *applied* through *screen*, *onsite*, *offer*, and *rejected*, with a state machine that prevents invalid transitions and keeps timeline data clean.
 
-### Race Condition & Data Corruption Fixes
+**Batch JD evaluation.** Paste a list of job descriptions and get back a ranked fit report for each one, with an evaluation breakdown explaining the score.
 
-- **Email throttle was global, not per-user** (`lib/email/throttle.ts`) — `getDailySendCount` now filters by `userId`. Previously one user's sends reduced every other user's quota.
-- **Rate limiter inflated count on rejected requests** (`lib/rate-limit.ts`) — Sliding window now checks the count *before* adding the member. Rejected requests no longer permanently skew the counter.
-- **6 non-transactional delete-then-insert patterns** wrapped in `db.transaction()`:
-  - `api/gmail/callback` — Gmail OAuth connection upsert
-  - `api/keys` — API key upsert
-  - `api/resumes` — Resume activation toggle
-  - `api/parse-resume` — Deactivate-all + insert new resume
-  - `api/score-matches` — Resume embedding upsert
-  - `api/score-matches` — Match score delete + batch insert
+**Interview prep.** Each match surfaces company-specific context — recent news, founder background, technical stack — so you walk into conversations prepared.
 
-### Performance Optimizations
+## Stack
 
-- **Batch insert for match scores** (`api/score-matches`) — Replaced N+1 individual `INSERT` loop with a single `db.insert().values([...])`.
-- **Parallelized dashboard queries** (`api/dashboard-status`) — Merged 2 resume queries into 1 and ran independent queries with `Promise.all`.
-- **Parallelized admin log queries** (`api/admin/llm-logs`) — Logs + aggregation queries now run concurrently.
-- **Memoized matches page** (`(app)/matches/page.tsx`) — Wrapped expensive `.filter().filter().sort()` chain and `selectedIds` in `useMemo`.
-
-### Memory Leak Fixes
-
-- **7 bento card animation loops** (`components/landing-features.tsx`) — All `setInterval`/`setTimeout` chains now properly tracked and cleared on unmount.
-- **Grainient WebGL context** (`components/grainient.tsx`) — Setup runs once; prop changes update uniforms via refs instead of tearing down and rebuilding the entire GL context. Added `disposed` flag to prevent async setup from running post-unmount.
-
-### Resource Leak Fixes
-
-- **Timeout leaks** in `lib/scraper.ts` and `lib/ai/score-match.ts` — `clearTimeout` now called in `catch` paths.
-
-### Landing Page Redesign
-
-- **Step 1 (Resume Upload)** — Now shows a realistic drag-and-drop dashboard mockup with an animated cursor dragging a "resume_2025.pdf" file into a drop zone, followed by a crossfade to extracted skills. Smooth 700ms crossfade transitions between phases.
-- **Step 2 (Match Scoring)** — Now shows real YC company tiles (Supabase, Retool, Vanta, etc.) in a 2-column grid that score one-by-one, mimicking the actual matches page with logos, badges, hiring dots, and industry tags.
-- **Grainient hero** lightened to softer orange tones.
-- Both Step 1 and Step 2 loop continuously with smooth fade transitions.
+Next.js 16 · React 19 · Supabase (auth) · Drizzle + Postgres with `pgvector` · OpenAI / Anthropic / Groq · Tailwind v4 · Trigger.dev for background jobs · Resend + Gmail API for outreach.
