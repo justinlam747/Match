@@ -538,6 +538,40 @@ export const applications = pgTable("applications", {
 
 export type ApplicationRow = typeof applications.$inferSelect;
 
+export interface ResearchSignals {
+  techSignals: string[];
+  recentNews: string[];
+  teamSignals: string[];
+  cultureSignals: string[];
+  productFocus: string | null;
+  fundingStage: string | null;
+}
+
+export interface ResearchSource {
+  url: string;
+  title: string | null;
+  kind: "website" | "websearch";
+}
+
+export const companyResearch = pgTable("company_research", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .references(() => ycCompanies.id)
+    .notNull()
+    .unique(),
+  summary: text("summary").notNull(),
+  signals: jsonb("signals").$type<ResearchSignals>().notNull(),
+  sources: jsonb("sources").$type<ResearchSource[]>().default([]).notNull(),
+  rawText: text("raw_text"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+}, (t) => [
+  index("company_research_company_id_idx").on(t.companyId),
+  index("company_research_expires_at_idx").on(t.expiresAt),
+]);
+
+export type CompanyResearchRow = typeof companyResearch.$inferSelect;
+
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),
