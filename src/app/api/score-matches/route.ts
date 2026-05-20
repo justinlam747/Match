@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { scoreMatchesBatch } from "@/lib/ai/score-match";
+import { tryReuseScoredMatches } from "@/lib/ai/match-score-cache";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import {
@@ -238,6 +239,22 @@ export async function POST(request: NextRequest) {
         embedding: resumeVector,
       });
     });
+
+    // Step 1.5: Same-user NN reuse — if a sibling resume has near-identical
+    // embedding and existing match_scores, clone them and short-circuit.
+    const reuse = await tryReuseScoredMatches({
+      userId: user.id,
+      resumeId,
+      embedding: resumeVector,
+    });
+    if (reuse.reused) {
+      return NextResponse.json({
+        message: `Reused ${reuse.count} cached scores from a near-identical resume (${(reuse.similarity * 100).toFixed(1)}% similar)`,
+        reranked: false,
+        reused: true,
+        topMatches: reuse.topMatches,
+      });
+    }
 
     // Step 2: Vector similarity search — top 50
     const vectorStr = `[${resumeVector.join(",")}]`;
