@@ -1,9 +1,4 @@
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+import { getRedis } from "@/lib/cache/redis";
 
 interface RateLimitResult {
   success: boolean;
@@ -22,6 +17,15 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number
 ): Promise<RateLimitResult> {
+  const redis = getRedis();
+  if (!redis) {
+    return {
+      success: true,
+      remaining: limit - 1,
+      reset: windowSeconds,
+    };
+  }
+
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const windowStart = now - windowMs;

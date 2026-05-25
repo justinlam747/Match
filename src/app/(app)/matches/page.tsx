@@ -10,7 +10,7 @@ import {
   ARCHETYPE_LABELS,
   ROLE_ARCHETYPES,
   type RoleArchetype,
-} from "@/lib/ai/archetype-detector";
+} from "@/lib/ai/archetypes";
 import type { Grade } from "@/lib/ai/grade-calculator";
 import {
   Select,

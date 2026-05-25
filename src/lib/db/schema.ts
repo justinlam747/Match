@@ -228,32 +228,6 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const agentStatusEnum = pgEnum("agent_status", [
-  "pending",
-  "running",
-  "completed",
-  "failed",
-  "paused",
-]);
-
-export const agentRuns = pgTable("agent_runs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  agentType: text("agent_type").notNull(),
-  userId: text("user_id").notNull(),
-  status: agentStatusEnum("status").default("pending").notNull(),
-  input: jsonb("input").$type<Record<string, unknown>>().default({}),
-  state: jsonb("state").$type<Record<string, unknown>>().default({}),
-  output: jsonb("output").$type<Record<string, unknown>>(),
-  error: text("error"),
-  parentRunId: uuid("parent_run_id"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  completedAt: timestamp("completed_at"),
-}, (t) => [
-  index("agent_runs_user_id_idx").on(t.userId),
-  index("agent_runs_status_idx").on(t.status),
-  index("agent_runs_parent_run_id_idx").on(t.parentRunId),
-]);
-
 export const userConfig = pgTable("user_config", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")

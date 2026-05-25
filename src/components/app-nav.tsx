@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isClientTestMode } from "@/lib/supabase/config";
 import { useRouter } from "next/navigation";
 
 interface AppNavProps {
@@ -27,7 +28,6 @@ const baseLinks = [
   { href: "/matches", label: "Matches" },
   { href: "/interview", label: "Interview" },
   { href: "/emails", label: "Emails" },
-  { href: "/agents", label: "Agents" },
 ];
 
 export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps) {
@@ -39,6 +39,11 @@ export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps
   const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleSignOut() {
+    if (isClientTestMode()) {
+      router.push("/");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -55,10 +60,7 @@ export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm">
       <div className="px-6 lg:px-10 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center">
-              M
-            </div>
+          <Link href="/dashboard" className="flex items-center">
             <span className="font-bold tracking-tight">Match</span>
           </Link>
 

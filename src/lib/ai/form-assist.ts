@@ -7,7 +7,7 @@
 
 import { chatCompletion } from "@/lib/ai/client";
 import type { ParsedResume } from "@/lib/db/schema";
-import type { RoleArchetype } from "@/lib/ai/archetype-detector";
+import type { RoleArchetype } from "@/lib/ai/archetypes";
 
 export type FormQuestionKind =
   | "why-company"

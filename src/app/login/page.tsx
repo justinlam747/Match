@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseConfig, isClientTestMode } from "@/lib/supabase/config";
+
+const SUPABASE_SETUP_MESSAGE =
+  "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY to .env.local, then restart the dev server.";
 
 function getInitialError(): string | null {
   if (typeof window === "undefined") return null;
@@ -13,14 +17,25 @@ function getInitialError(): string | null {
 }
 
 export default function LoginPage() {
+  const supabaseConfigured = getSupabaseConfig().isConfigured;
+  const testMode = isClientTestMode();
+  const setupError = !testMode && !supabaseConfigured
+    ? SUPABASE_SETUP_MESSAGE
+    : null;
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [error, setError] = useState<string | null>(getInitialError);
+  const [checkingAuth, setCheckingAuth] = useState(!setupError);
+  const [error, setError] = useState<string | null>(
+    () => getInitialError() ?? setupError
+  );
   const router = useRouter();
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_TEST_MODE === "true") {
+    if (testMode) {
       router.push("/dashboard");
+      return;
+    }
+
+    if (!supabaseConfigured) {
       return;
     }
 
@@ -31,12 +46,20 @@ export default function LoginPage() {
       } else {
         setCheckingAuth(false);
       }
+    }).catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "Failed to check auth state");
+      setCheckingAuth(false);
     });
-  }, [router]);
+  }, [router, supabaseConfigured, testMode]);
 
   async function handleGoogleLogin() {
     setLoading(true);
     setError(null);
+    if (!supabaseConfigured) {
+      setError(SUPABASE_SETUP_MESSAGE);
+      setLoading(false);
+      return;
+    }
     const supabase = getSupabaseBrowserClient();
 
     const { error } = await supabase.auth.signInWithOAuth({

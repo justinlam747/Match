@@ -27,6 +27,8 @@ const Grainient = lazy(() => import("@/components/grainient"));
 
 gsap.registerPlugin(ScrollTrigger);
 
+const RESUME_SKILLS = ["React / Next.js", "TypeScript", "PostgreSQL", "AWS", "Python", "Docker"];
+
 /* ── Deterministic avatar configs — all orange bg ── */
 function orangeAvatar(seed: string) {
   const c = genConfig(seed);
@@ -83,7 +85,7 @@ function GrainBg({ preset, className = "" }: { preset: keyof typeof GBg; classNa
 
 /* ── Step 1: Resume Upload — drag-and-drop dashboard mockup ── */
 function ResumeCard() {
-  const skills = ["React / Next.js", "TypeScript", "PostgreSQL", "AWS", "Python", "Docker"];
+  const skills = RESUME_SKILLS;
   // phase: "idle" → "dragging" → "dropping" → "parsing" → "done"
   const [phase, setPhase] = useState<"idle" | "dragging" | "dropping" | "parsing" | "done">("idle");
   const [parsedCount, setParsedCount] = useState(0);
@@ -96,7 +98,7 @@ function ResumeCard() {
     timers.current = [];
   }, []);
 
-  const runAnimation = useCallback(() => {
+  const runAnimation = useCallback(function runAnimation() {
     clearTimers();
     // Reset to idle — the crossfade (700ms) will smoothly show the drop zone again
     setPhase("idle");
@@ -116,7 +118,7 @@ function ResumeCard() {
     const t5 = setTimeout(() => runAnimation(), 3900 + skills.length * 350 + 4500);
 
     timers.current.push(t1, t2, t3, ...skillTimers, t4, t5);
-  }, [skills.length, clearTimers]);
+  }, [clearTimers]);
 
   useEffect(() => {
     const el = ref.current;
@@ -304,7 +306,7 @@ function MatchScoreCard() {
     timers.current = [];
   }, []);
 
-  const runCycle = useCallback(() => {
+  const runCycle = useCallback(function runCycle() {
     clearTimers();
     // Reset to 0 — tiles fade back to unscored (500ms CSS transition)
     setRevealed(0);
@@ -549,7 +551,7 @@ function SendQueueCard() {
     timers.current = [];
   }, []);
 
-  const runCycle = useCallback(() => {
+  const runCycle = useCallback(function runCycle() {
     clearTimers();
     let step = 0;
     const maxSteps = allStatuses.length * statusOrder.length;
@@ -622,7 +624,7 @@ function InterviewPrepCard() {
   const ref = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
-  const runCycle = useCallback(() => {
+  const runCycle = useCallback(function runCycle() {
     let phase = 0;
     let cancelled = false;
     setActivePhase(0);
@@ -841,7 +843,7 @@ function BeforeAfterSection() {
     timers.current = [];
   }, []);
 
-  const runCycle = useCallback(() => {
+  const runCycle = useCallback(function runCycle() {
     clearTimers();
     setPhase("chaos");
 

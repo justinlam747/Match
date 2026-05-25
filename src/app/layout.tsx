@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getAppUrl } from "@/lib/app-url";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   },
   description:
     "Upload your resume, get AI-scored matches against top startups, and send personalized cold emails.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(getAppUrl()),
   icons: {
     icon: "/favicon.svg",
   },
@@ -34,7 +35,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col">
         <TooltipProvider>
           {children}

@@ -19,7 +19,7 @@ import {
 } from "@/lib/ai/embeddings";
 import type { GradeBreakdown, ParsedResume } from "@/lib/db/schema";
 import type { Grade } from "@/lib/ai/grade-calculator";
-import type { RoleArchetype } from "@/lib/ai/archetype-detector";
+import type { RoleArchetype } from "@/lib/ai/archetypes";
 
 /*
  * Scoring weights (out of 100):
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { resumeId, rerank = false } = body as {
+    const { resumeId, rerank = true } = body as {
       resumeId: string;
       rerank?: boolean;
     };
@@ -322,7 +322,8 @@ export async function POST(request: NextRequest) {
     let results: ScoredRow[];
 
     if (rerank) {
-      // Step 3 (opt-in): LLM rerank top 30
+      // Step 3: provider scoring top 30. The provider chain tries the
+      // fine-tuned Qwen model first, then falls back to hosted models/heuristics.
       const toScore = candidates.slice(0, 30);
 
       const [profile] = await db
@@ -344,7 +345,8 @@ export async function POST(request: NextRequest) {
           archetype: c.archetype ?? null,
           hiringSignals: c.hiring_signals,
         })),
-        profile ?? null
+        profile ?? null,
+        1
       );
 
       // Blend LLM score with similarity
@@ -407,7 +409,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: `Matched ${results.length} companies${rerank ? " (AI reranked)" : ""}`,
+      message: `Matched ${results.length} companies${rerank ? " (fine-tuned scoring)" : ""}`,
       reranked: rerank,
       topMatches: results.slice(0, 20),
     });

@@ -12,12 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isClientTestMode } from "@/lib/supabase/config";
 import {
   LayoutDashboard,
   Target,
   MessageSquareText,
   Mail,
-  Bot,
   Building2,
   Kanban,
   Layers,
@@ -42,7 +42,6 @@ const baseLinks = [
   { href: "/matches", label: "Matches", icon: Target },
   { href: "/interview", label: "Interview", icon: MessageSquareText },
   { href: "/emails", label: "Emails", icon: Mail },
-  { href: "/agents", label: "Agents", icon: Bot },
   { href: "/portals", label: "Portals", icon: Building2 },
   { href: "/batch", label: "Batch", icon: Layers },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
@@ -57,6 +56,11 @@ export function AppSidebar({ userName, userAvatar, userEmail, isAdmin }: AppSide
   const [collapsed, setCollapsed] = useState(false);
 
   async function handleSignOut() {
+    if (isClientTestMode()) {
+      router.push("/");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -80,10 +84,7 @@ export function AppSidebar({ userName, userAvatar, userEmail, isAdmin }: AppSide
       >
         {/* Logo */}
         <div className="h-14 flex items-center px-4 border-b">
-          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">
-              M
-            </div>
+          <Link href="/dashboard" className="flex items-center min-w-0">
             {!collapsed && (
               <span className="font-bold tracking-tight text-sidebar-foreground">Match</span>
             )}
@@ -207,10 +208,7 @@ function MobileBar({
   return (
     <div className="md:hidden sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
       <div className="flex items-center justify-between h-12 px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center">
-            M
-          </div>
+        <Link href="/dashboard" className="flex items-center">
           <span className="font-bold tracking-tight text-sm">Match</span>
         </Link>
 

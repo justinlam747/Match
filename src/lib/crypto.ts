@@ -5,8 +5,17 @@ const ALGORITHM = "aes-256-gcm";
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
   if (!key) throw new Error("ENCRYPTION_KEY env var is required for BYOK");
-  // Key must be 32 bytes (64 hex chars)
-  return Buffer.from(key, "hex");
+
+  const trimmed = key.trim();
+  const parsed = /^[a-f0-9]{64}$/i.test(trimmed)
+    ? Buffer.from(trimmed, "hex")
+    : Buffer.from(trimmed, "base64");
+
+  if (parsed.length !== 32) {
+    throw new Error("ENCRYPTION_KEY must be 32 bytes encoded as 64 hex chars or base64.");
+  }
+
+  return parsed;
 }
 
 export function encrypt(plaintext: string): {

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { emailConnections } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { encrypt, decrypt } from "@/lib/crypto";
+import { getAppUrl } from "@/lib/app-url";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/gmail.send",
@@ -13,7 +14,7 @@ function getOAuth2Client() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/gmail/callback`
+    `${getAppUrl()}/api/gmail/callback`
   );
 }
 

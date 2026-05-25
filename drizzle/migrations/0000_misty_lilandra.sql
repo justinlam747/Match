@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS vector;--> statement-breakpoint
 CREATE TYPE "public"."agent_status" AS ENUM('pending', 'running', 'completed', 'failed', 'paused');--> statement-breakpoint
 CREATE TYPE "public"."ai_provider" AS ENUM('anthropic', 'openai');--> statement-breakpoint
 CREATE TYPE "public"."doc_type" AS ENUM('resume', 'portfolio', 'github', 'linkedin', 'website', 'other');--> statement-breakpoint

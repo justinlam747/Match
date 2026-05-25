@@ -14,7 +14,7 @@ import {
   ARCHETYPE_DESCRIPTIONS,
   ARCHETYPE_LABELS,
   type RoleArchetype,
-} from "@/lib/ai/archetype-detector";
+} from "@/lib/ai/archetypes";
 import { gradeFromDimension } from "@/lib/ai/grade-calculator";
 import type { Grade, GradeBreakdown } from "@/lib/db/schema";
 

@@ -9,21 +9,27 @@
     }
   },
   "private": true,
+  "engines": {
+    "node": ">=20.9.0 <25.0.0",
+    "npm": ">=10.0.0 <12.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "populate": "tsx scripts/populate.ts",
     "populate:import": "tsx scripts/populate.ts --import-only",
     "populate:embed": "tsx scripts/populate.ts --embed-only"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/sdk": "^0.91.1",
     "@base-ui/react": "^1.3.0",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.99.3",
-    "@trigger.dev/sdk": "^4.4.3",
+    "@trigger.dev/sdk": "^4.4.4",
     "@types/pdfkit": "^0.17.5",
     "@upstash/redis": "^1.37.0",
     "cheerio": "^1.2.0",
@@ -35,7 +41,7 @@
     "googleapis": "^171.4.0",
     "gsap": "^3.14.2",
     "lucide-react": "^0.577.0",
-    "next": "16.2.1",
+    "next": "16.2.4",
     "next-themes": "^0.4.6",
     "ogl": "^1.0.11",
     "openai": "^6.33.0",
@@ -45,7 +51,7 @@
     "react-dom": "19.2.4",
     "react-nice-avatar": "^1.5.0",
     "recharts": "^3.8.0",
-    "resend": "^6.9.4",
+    "resend": "^6.12.2",
     "shadcn": "^4.1.0",
     "sonner": "^2.0.7",
     "svix": "^1.89.0",
@@ -54,7 +60,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@trigger.dev/build": "^4.4.3",
+    "@trigger.dev/build": "^4.4.4",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
@@ -62,10 +68,10 @@
     "dotenv": "^17.3.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "16.2.4",
     "postgres": "^3.4.8",
     "tailwindcss": "^4",
-    "trigger.dev": "^4.4.3",
+    "trigger.dev": "^4.4.4",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

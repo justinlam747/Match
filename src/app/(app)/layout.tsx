@@ -1,9 +1,7 @@
 import { requireAuth } from "@/lib/supabase/auth-guard";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppFooter } from "@/components/app-footer";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { isLocalTestMode } from "@/lib/supabase/config";
 
 export default async function AppLayout({
   children,
@@ -15,7 +13,12 @@ export default async function AppLayout({
   // Prefer custom avatar from DB over Supabase auth avatar
   let avatar = user.user_metadata?.avatar_url;
   let isAdmin = false;
-  if (user.email) {
+  if (user.email && !isLocalTestMode() && process.env.DATABASE_URL) {
+    const [{ db }, { users }, { eq }] = await Promise.all([
+      import("@/lib/db"),
+      import("@/lib/db/schema"),
+      import("drizzle-orm"),
+    ]);
     const [dbUser] = await db
       .select({ avatarUrl: users.avatarUrl, tags: users.tags })
       .from(users)

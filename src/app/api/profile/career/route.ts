@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
-import { ROLE_ARCHETYPES } from "@/lib/ai/archetype-detector";
+import { ROLE_ARCHETYPES } from "@/lib/ai/archetypes";
 import { REMOTE_PREFERENCES, isRemotePreference, type RemotePreference } from "@/lib/profile/constants";
 
 function toStringArray(value: unknown): string[] {

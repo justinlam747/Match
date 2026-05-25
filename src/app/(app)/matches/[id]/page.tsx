@@ -11,7 +11,7 @@ import {
   ARCHETYPE_LABELS,
   ARCHETYPE_DESCRIPTIONS,
   type RoleArchetype,
-} from "@/lib/ai/archetype-detector";
+} from "@/lib/ai/archetypes";
 import { gradeRecommendation } from "@/lib/ai/grade-calculator";
 import type { Grade } from "@/lib/db/schema";
 import { GenerateResumeButton } from "./generate-resume-button";

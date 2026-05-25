@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { resumes, matchScores, ycCompanies } from "@/lib/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
+import { isLocalTestMode } from "@/lib/supabase/config";
 
 export async function GET() {
   try {
+    if (isLocalTestMode() && !process.env.DATABASE_URL) {
+      return NextResponse.json({
+        hasResume: false,
+        resumeId: null,
+        resumeName: null,
+        companyCount: 0,
+        matchCount: 0,
+      });
+    }
+
     const user = await getApiUser();
     if (!user) return unauthorized();
+    const [{ db }, { resumes, matchScores, ycCompanies }, { eq, desc, sql }] =
+      await Promise.all([
+        import("@/lib/db"),
+        import("@/lib/db/schema"),
+        import("drizzle-orm"),
+      ]);
 
     // Run independent queries in parallel
     const [resumeResults, [companyCount]] = await Promise.all([
