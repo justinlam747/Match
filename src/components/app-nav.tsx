@@ -26,7 +26,6 @@ interface AppNavProps {
 const baseLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/matches", label: "Matches" },
-  { href: "/interview", label: "Interview" },
 ];
 
 export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps) {
