@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { users, resumes, documents, matchScores, emails } from "@/lib/db/schema";
+import { resumes, documents, matchScores } from "@/lib/db/schema";
 import { eq, count, and } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 
@@ -33,11 +33,6 @@ export async function GET() {
         .where(eq(matchScores.resumeId, activeResume.id))
     : [{ count: 0 }];
 
-  const [emailCount] = await db
-    .select({ count: count() })
-    .from(emails)
-    .where(eq(emails.userId, user.id));
-
   return NextResponse.json({
     user: {
       id: user.id,
@@ -58,7 +53,6 @@ export async function GET() {
     documents: docs,
     stats: {
       matches: matchCount.count,
-      emails: emailCount.count,
       documents: docs.length,
     },
   });

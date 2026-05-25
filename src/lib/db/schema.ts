@@ -24,15 +24,6 @@ const vector = customType<{ data: number[]; driverData: string }>({
   },
 });
 
-export const emailStatusEnum = pgEnum("email_status", [
-  "draft",
-  "edited",
-  "sent",
-  "opened",
-  "replied",
-  "bounced",
-]);
-
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
@@ -113,20 +104,6 @@ export const resumeEmbeddings = pgTable("resume_embeddings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [index("resume_embeddings_resume_id_idx").on(t.resumeId)]);
 
-export const contacts = pgTable("contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id")
-    .references(() => ycCompanies.id)
-    .notNull(),
-  name: text("name").notNull(),
-  title: text("title"),
-  email: text("email"),
-  emailVerified: boolean("email_verified").default(false),
-  source: text("source"),
-  linkedinUrl: text("linkedin_url"),
-  foundAt: timestamp("found_at").defaultNow(),
-}, (t) => [index("contacts_company_id_idx").on(t.companyId)]);
-
 export const matchScores = pgTable("match_scores", {
   id: uuid("id").primaryKey().defaultRandom(),
   resumeId: uuid("resume_id")
@@ -169,46 +146,6 @@ export const apiKeys = pgTable("api_keys", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-export const emailProviderEnum = pgEnum("email_provider", ["gmail", "outlook"]);
-
-export const emailConnections = pgTable("email_connections", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull(),
-  provider: emailProviderEnum("provider").notNull(),
-  emailAddress: text("email_address").notNull(),
-  accessTokenEnc: text("access_token_enc").notNull(),
-  accessTokenIv: text("access_token_iv").notNull(),
-  accessTokenTag: text("access_token_tag").notNull(),
-  refreshTokenEnc: text("refresh_token_enc").notNull(),
-  refreshTokenIv: text("refresh_token_iv").notNull(),
-  refreshTokenTag: text("refresh_token_tag").notNull(),
-  tokenExpiresAt: timestamp("token_expires_at").notNull(),
-  connectedAt: timestamp("connected_at").defaultNow().notNull(),
-});
-
-export const emails = pgTable("emails", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull(),
-  contactId: uuid("contact_id")
-    .references(() => contacts.id)
-    .notNull(),
-  matchScoreId: uuid("match_score_id").references(() => matchScores.id),
-  subject: text("subject").notNull(),
-  body: text("body").notNull(),
-  status: emailStatusEnum("status").default("draft").notNull(),
-  sequencePosition: integer("sequence_position").default(1),
-  sentAt: timestamp("sent_at"),
-  openedAt: timestamp("opened_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (t) => [
-  index("emails_user_id_idx").on(t.userId),
-  index("emails_contact_id_idx").on(t.contactId),
-]);
 
 export const userPreferences = pgTable("user_preferences", {
   id: uuid("id").primaryKey().defaultRandom(),

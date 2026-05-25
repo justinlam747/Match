@@ -190,9 +190,6 @@ export default async function MatchDetailPage({
             <Link href="/interview">
               <Button variant="outline" size="sm">Prep interview</Button>
             </Link>
-            <Link href="/emails">
-              <Button variant="outline" size="sm">Draft outreach</Button>
-            </Link>
             {canGenerateResume && (
               <GenerateResumeButton matchId={score.id} />
             )}

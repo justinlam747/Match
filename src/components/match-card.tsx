@@ -38,7 +38,6 @@ export interface MatchData {
   hiringScore: number;
   stageScore: number;
   explanation: string;
-  selected: boolean;
   compensationScore?: number | null;
   cultureScore?: number | null;
   redFlagScore?: number | null;
@@ -51,7 +50,6 @@ export interface MatchData {
 
 interface MatchCardProps {
   match: MatchData;
-  onToggleSelect: (companyId: string) => void;
   onViewDetail?: (match: MatchData) => void;
 }
 
@@ -124,7 +122,7 @@ function compensationGrade(
   return null;
 }
 
-export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProps) {
+export function MatchCard({ match, onViewDetail }: MatchCardProps) {
   const dimensions: DimensionSpec[] = [
     { key: "tech", label: "Tech", value: match.techScore },
     { key: "industry", label: "Ind", value: match.industryScore },
@@ -145,24 +143,12 @@ export function MatchCard({ match, onToggleSelect, onViewDetail }: MatchCardProp
   return (
     <TooltipProvider>
       <Card
-        className={`cursor-pointer transition-all hover:shadow-md ${
-          match.selected
-            ? "ring-2 ring-primary shadow-sm"
-            : "hover:ring-1 hover:ring-border"
-        }`}
-        onClick={() => onToggleSelect(match.companyId)}
+        className="cursor-pointer transition-all hover:shadow-md hover:ring-1 hover:ring-border"
+        onClick={() => onViewDetail?.(match)}
       >
         <CardContent className="p-4 space-y-3">
           {/* Header with logo */}
           <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              checked={match.selected}
-              onChange={() => onToggleSelect(match.companyId)}
-              onClick={(e) => e.stopPropagation()}
-              className="mt-1 h-3.5 w-3.5 accent-primary shrink-0"
-            />
-
             <CompanyLogo logoUrl={match.logoUrl} companyName={match.companyName} size="sm" />
 
             <div className="flex-1 min-w-0">

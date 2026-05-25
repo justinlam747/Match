@@ -33,7 +33,6 @@ interface ProfileData {
   }[];
   stats: {
     matches: number;
-    emails: number;
     documents: number;
   };
 }
@@ -184,7 +183,6 @@ export default function ProfilePage() {
               )}
               <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
                 <span>{stats.matches} matches</span>
-                <span>{stats.emails} emails</span>
                 <span>{stats.documents} documents</span>
                 <span>Member since {memberSince}</span>
               </div>
