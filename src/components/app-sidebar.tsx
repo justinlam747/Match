@@ -18,9 +18,7 @@ import {
   Target,
   MessageSquareText,
   Mail,
-  Building2,
   Kanban,
-  Layers,
   Shield,
   Settings,
   User,
@@ -42,8 +40,6 @@ const baseLinks = [
   { href: "/matches", label: "Matches", icon: Target },
   { href: "/interview", label: "Interview", icon: MessageSquareText },
   { href: "/emails", label: "Emails", icon: Mail },
-  { href: "/portals", label: "Portals", icon: Building2 },
-  { href: "/batch", label: "Batch", icon: Layers },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
 ];
 
