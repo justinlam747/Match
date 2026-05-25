@@ -4,7 +4,13 @@ import { emails } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getGmailConnection, sendViaGmail } from "@/lib/email/gmail";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is required when sending without a connected Gmail account.");
+  }
+  return new Resend(apiKey);
+}
 
 interface SendEmailParams {
   emailId: string;
@@ -29,6 +35,7 @@ export async function sendEmail({ emailId, to, subject, body, userId }: SendEmai
   } else {
     // Fall back to Resend
     const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+    const resend = getResendClient();
 
     const result = await resend.emails.send({
       from: fromEmail,

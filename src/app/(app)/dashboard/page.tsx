@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [resumeId, setResumeId] = useState<string | null>(null);
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null);
   const [isScoring, setIsScoring] = useState(false);
-  const [rerank, setRerank] = useState(false);
+  const [rerank, setRerank] = useState(true);
   const [statusLoading, setStatusLoading] = useState(true);
   const [existingMatches, setExistingMatches] = useState(0);
   const [companyCount, setCompanyCount] = useState(0);
@@ -181,7 +181,7 @@ export default function DashboardPage() {
               onChange={(e) => setRerank(e.target.checked)}
               className="h-3.5 w-3.5 accent-primary"
             />
-            AI rerank
+            Fine-tuned scoring
           </label>
           <Button
             onClick={handleScore}

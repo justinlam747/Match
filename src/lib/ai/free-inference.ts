@@ -25,6 +25,7 @@ interface ScoreOutput {
 }
 
 interface CompanyInput {
+  id?: string;
   name: string;
   description: string | null;
   industries: string[] | null;
@@ -290,7 +291,7 @@ export async function scoreMatchesBatchFree(
         const scores = await scoreWithFreeModel(resume, company);
         return {
           ...scores,
-          companyId: (company as any).id || "",
+          companyId: company.id || "",
           overallScore: scores.techScore + scores.industryScore + scores.stageScore + scores.hiringScore,
         };
       })

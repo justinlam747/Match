@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getAppUrl } from "@/lib/app-url";
+import { requireSupabaseConfig } from "@/lib/supabase/config";
 
 export async function POST() {
   const cookieStore = await cookies();
+  const { url, key } = requireSupabaseConfig();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll() {
@@ -24,5 +27,5 @@ export async function POST() {
 
   await supabase.auth.signOut();
 
-  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
+  return NextResponse.redirect(new URL("/", getAppUrl()));
 }

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function AppFooter() {
   return (
     <footer className="border-t mt-auto">
@@ -9,10 +11,10 @@ export function AppFooter() {
           <span>Match</span>
         </div>
         <div className="flex items-center gap-4">
-          <a href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</a>
-          <a href="/matches" className="hover:text-foreground transition-colors">Matches</a>
-          <a href="/settings" className="hover:text-foreground transition-colors">Settings</a>
-          <a href="/legal/third-party" className="hover:text-foreground transition-colors">Matching engine inspired by career-ops (MIT)</a>
+          <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
+          <Link href="/matches" className="hover:text-foreground transition-colors">Matches</Link>
+          <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
+          <Link href="/legal/third-party" className="hover:text-foreground transition-colors">Matching engine inspired by career-ops (MIT)</Link>
         </div>
       </div>
     </footer>

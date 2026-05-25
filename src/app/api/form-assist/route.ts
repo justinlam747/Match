@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { matchScores, resumes, ycCompanies, userProfiles } from "@/lib/db/schema";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 import { generateFormAnswer, type FormQuestionKind } from "@/lib/ai/form-assist";
-import type { RoleArchetype } from "@/lib/ai/archetype-detector";
+import type { RoleArchetype } from "@/lib/ai/archetypes";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KINDS: FormQuestionKind[] = [

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { isLocalTestMode, requireSupabaseConfig } from "./config";
 
 const TEST_DB_USER = {
   id: "00000000-0000-0000-0000-000000000000",
@@ -12,7 +13,7 @@ const TEST_DB_USER = {
 };
 
 export async function getApiUser() {
-  if (process.env.TEST_MODE === "true" && process.env.NODE_ENV !== "production") {
+  if (isLocalTestMode()) {
     console.warn("[AUTH] Test mode active — bypassing authentication");
     const existing = await db
       .select()
@@ -39,10 +40,11 @@ export async function getApiUser() {
   }
 
   const cookieStore = await cookies();
+  const { url, key } = requireSupabaseConfig();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll() {

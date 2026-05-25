@@ -438,7 +438,7 @@ async function runBenchmark() {
     const hiring = company.hiringSignals;
     const isHiring = hiring?.has_careers_page || (hiring?.recent_job_posts ?? 0) > 0 || hiring?.eng_roles_open;
 
-    const prompt = `Score this match:\n\nCANDIDATE:\n- Skills: ${skills}\n- Experience: ${experience}\n- Industries: ${resume.industries_worked_in.join(", ")}\n- Seniority: ${resume.seniority_level} (${resume.years_of_experience} years)\n\nCOMPANY: ${company.name} (YC ${company.batch}, ${company.stage})\n- Description: ${company.desc}\n- Tech stack: ${company.tech}\n- Industries: ${company.industries.join(", ")}\n- Actively hiring: ${isHiring ? "Yes" : "No"}`;
+    const prompt = `Score this match:\n\nCANDIDATE:\n- Skills: ${skills}\n- Experience: ${experience}\n- Industries: ${resume.industries_worked_in.join(", ")}\n- Seniority: ${resume.seniority_level} (${resume.years_of_experience} years)\n\nCOMPANY: ${company.name} (YC ${company.batch}, ${company.stage})\n- Description: ${company.description}\n- Tech stack: ${company.techStack.join(", ")}\n- Industries: ${company.industries.join(", ")}\n- Actively hiring: ${isHiring ? "Yes" : "No"}`;
 
     try {
       const res = await fetch("http://localhost:8787/score", {

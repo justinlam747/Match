@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "@/lib/cache/redis";
 import { getGmailAuthUrl } from "@/lib/email/gmail";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
 
 export async function GET() {
   const user = await getApiUser();
   if (!user) return unauthorized();
+
+  const redis = getRedis();
+  if (!redis) {
+    return NextResponse.json(
+      { error: "Gmail OAuth requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN." },
+      { status: 503 }
+    );
+  }
 
   const stateToken = crypto.randomUUID();
   await redis.set("gmail-oauth:" + stateToken, user.id, { ex: 600 });

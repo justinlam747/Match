@@ -30,7 +30,7 @@ import {
   ROLE_ARCHETYPES,
   ARCHETYPE_DESCRIPTIONS,
   type RoleArchetype,
-} from "@/lib/ai/archetype-detector";
+} from "@/lib/ai/archetypes";
 import { getProfileCompleteness } from "@/lib/profile/completeness";
 import {
   COMPENSATION_CURRENCIES,
