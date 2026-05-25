@@ -4,7 +4,6 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { matchScores, ycCompanies, resumes } from "@/lib/db/schema";
 import { requireAuth } from "@/lib/supabase/auth-guard";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,7 +13,6 @@ import {
 } from "@/lib/ai/archetypes";
 import { gradeRecommendation } from "@/lib/ai/grade-calculator";
 import type { Grade } from "@/lib/db/schema";
-import { GenerateResumeButton } from "./generate-resume-button";
 
 const GRADE_CLASS: Record<Grade, string> = {
   A: "bg-green-500 text-white",
@@ -87,7 +85,6 @@ export default async function MatchDetailPage({
   const { score, company } = row;
   const grade = (score.grade as Grade | null) ?? null;
   const archetype = (score.archetype as RoleArchetype | null) ?? null;
-  const canGenerateResume = grade === "A" || grade === "B";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -182,26 +179,6 @@ export default async function MatchDetailPage({
         </Card>
       )}
 
-      {/* Actions */}
-      <Card>
-        <CardContent className="py-5 space-y-3">
-          <h2 className="text-sm font-semibold">Next steps</h2>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/interview">
-              <Button variant="outline" size="sm">Prep interview</Button>
-            </Link>
-            {canGenerateResume && (
-              <GenerateResumeButton matchId={score.id} />
-            )}
-          </div>
-          {!canGenerateResume && (
-            <p className="text-xs text-muted-foreground">
-              Tailored resumes are available for grade B or higher matches — focus
-              your effort where you have genuine alignment.
-            </p>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

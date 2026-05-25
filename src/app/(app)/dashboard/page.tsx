@@ -10,7 +10,7 @@ import { DocumentManager } from "@/components/document-manager";
 import { ResumeList } from "@/components/resume-list";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Target, GraduationCap, User, UserCog } from "lucide-react";
+import { Target, User, UserCog } from "lucide-react";
 import type { ParsedResume } from "@/lib/db/schema";
 import { Progress } from "@/components/ui/progress";
 import { getProfileCompleteness } from "@/lib/profile/completeness";
@@ -260,12 +260,6 @@ export default function DashboardPage() {
             label="Explore Matches"
             description="Browse your top company matches, filter by batch, tech stack, and industry fit. Export to CSV."
             cta={`View ${existingMatches} matches`}          />
-          <FeatureCard
-            href="/interview"
-            icon={GraduationCap}
-            label="Interview Prep"
-            description="Practice with AI-generated questions tailored to each company. Company quizzes from real data."
-            cta="Start practicing"          />
           <FeatureCard
             href="/profile"
             icon={User}

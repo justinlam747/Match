@@ -204,45 +204,6 @@ export const userProfiles = pgTable("user_profiles", {
 
 export type UserProfileRow = typeof userProfiles.$inferSelect;
 
-export const starStories = pgTable("star_stories", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  matchId: uuid("match_id"),
-  archetype: text("archetype"),
-  jdRequirement: text("jd_requirement").notNull(),
-  situation: text("situation").notNull(),
-  task: text("task").notNull(),
-  action: text("action").notNull(),
-  result: text("result").notNull(),
-  reflection: text("reflection").notNull(),
-  tags: text("tags").array().default([]).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (t) => [
-  index("star_stories_user_id_idx").on(t.userId),
-  index("star_stories_match_id_idx").on(t.matchId),
-]);
-
-export type StarStoryRow = typeof starStories.$inferSelect;
-
-export const tailoredResumes = pgTable("tailored_resumes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  matchId: uuid("match_id"),
-  sourceResumeId: uuid("source_resume_id"),
-  jdLanguage: text("jd_language").default("en").notNull(),
-  keywords: text("keywords").array().default([]).notNull(),
-  coveragePercent: integer("coverage_percent").default(0).notNull(),
-  tailoredData: jsonb("tailored_data").notNull(),
-  pdfUrl: text("pdf_url"),
-  pageSize: text("page_size").default("LETTER").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (t) => [
-  index("tailored_resumes_user_id_idx").on(t.userId),
-  index("tailored_resumes_match_id_idx").on(t.matchId),
-]);
-
-export type TailoredResumeRow = typeof tailoredResumes.$inferSelect;
-
 export interface EvaluationBlocks {
   /** Block A — Role summary */
   a?: {
@@ -351,40 +312,6 @@ export const applications = pgTable("applications", {
 ]);
 
 export type ApplicationRow = typeof applications.$inferSelect;
-
-export interface ResearchSignals {
-  techSignals: string[];
-  recentNews: string[];
-  teamSignals: string[];
-  cultureSignals: string[];
-  productFocus: string | null;
-  fundingStage: string | null;
-}
-
-export interface ResearchSource {
-  url: string;
-  title: string | null;
-  kind: "website" | "websearch";
-}
-
-export const companyResearch = pgTable("company_research", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id")
-    .references(() => ycCompanies.id)
-    .notNull()
-    .unique(),
-  summary: text("summary").notNull(),
-  signals: jsonb("signals").$type<ResearchSignals>().notNull(),
-  sources: jsonb("sources").$type<ResearchSource[]>().default([]).notNull(),
-  rawText: text("raw_text"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-}, (t) => [
-  index("company_research_company_id_idx").on(t.companyId),
-  index("company_research_expires_at_idx").on(t.expiresAt),
-]);
-
-export type CompanyResearchRow = typeof companyResearch.$inferSelect;
 
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -16,7 +16,6 @@ import { isClientTestMode } from "@/lib/supabase/config";
 import {
   LayoutDashboard,
   Target,
-  MessageSquareText,
   Kanban,
   Shield,
   Settings,
@@ -37,7 +36,6 @@ interface AppSidebarProps {
 const baseLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/matches", label: "Matches", icon: Target },
-  { href: "/interview", label: "Interview", icon: MessageSquareText },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
 ];
 
