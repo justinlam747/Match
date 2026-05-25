@@ -10,7 +10,7 @@ import { DocumentManager } from "@/components/document-manager";
 import { ResumeList } from "@/components/resume-list";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Target, Mail, GraduationCap, Sparkles, User, Search, UserCog } from "lucide-react";
+import { Target, GraduationCap, User, UserCog } from "lucide-react";
 import type { ParsedResume } from "@/lib/db/schema";
 import { Progress } from "@/components/ui/progress";
 import { getProfileCompleteness } from "@/lib/profile/completeness";
@@ -261,41 +261,17 @@ export default function DashboardPage() {
             description="Browse your top company matches, filter by batch, tech stack, and industry fit. Export to CSV."
             cta={`View ${existingMatches} matches`}          />
           <FeatureCard
-            href="/emails"
-            icon={Mail}
-            label="Email Outreach"
-            description="AI-drafted cold emails to founders and hiring managers. Connect Gmail to send directly."
-            cta="Draft emails"          />
-          <FeatureCard
             href="/interview"
             icon={GraduationCap}
             label="Interview Prep"
             description="Practice with AI-generated questions tailored to each company. Company quizzes from real data."
             cta="Start practicing"          />
           <FeatureCard
-            href="/agents"
-            icon={Sparkles}
-            label="AI Agents"
-            description="Run automated pipelines — scoring, email drafting, contact discovery. Set it and forget it."
-            cta="Launch agents"          />
-          <FeatureCard
             href="/profile"
             icon={User}
             label="Your Profile"
             description="See your parsed skills, experience, and how you match. Link GitHub, LinkedIn, and portfolio."
             cta="View profile"          />
-          <div className="border border-dashed rounded-lg p-5 flex flex-col justify-between">
-            <div>
-              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center mb-3">
-                <Search className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="text-sm font-medium mb-1">Job Search Agent</div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                An AI agent that scans LinkedIn, Indeed, and job boards to surface matching positions automatically.
-              </p>
-            </div>
-            <Badge variant="secondary" className="mt-3 w-fit text-[10px]">Coming soon</Badge>
-          </div>
         </div>
       </div>
 

@@ -20,16 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface MatchRow extends Omit<MatchData, "selected"> {
+interface MatchRow extends MatchData {
   matchId: string;
 }
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [findingContacts, setFindingContacts] = useState(false);
-  const [draftingEmails, setDraftingEmails] = useState(false);
-  const [resumeId, setResumeId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("overall");
   const [minScore, setMinScore] = useState("0");
@@ -76,12 +73,10 @@ export default function MatchesPage() {
         const res = await fetch("/api/matches");
         if (!res.ok) throw new Error("Failed to load");
         const data = await res.json();
-        setResumeId(data.resumeId);
         setMatches(
           data.matches.map((m: MatchRow) => ({
             ...m,
             matchId: m.matchId,
-            selected: m.overallScore >= 60,
           }))
         );
       } catch {
@@ -91,14 +86,6 @@ export default function MatchesPage() {
       }
     }
     loadMatches();
-  }, []);
-
-  const toggleSelect = useCallback((companyId: string) => {
-    setMatches((prev) =>
-      prev.map((m) =>
-        m.companyId === companyId ? { ...m, selected: !m.selected } : m
-      )
-    );
   }, []);
 
   const batches = useMemo(() => {
@@ -144,53 +131,6 @@ export default function MatchesPage() {
     [matches, search, sortBy, minScore, batchFilter, gradeFilter, archetypeFilter, hideRedFlags]
   );
 
-  const selectedIds = useMemo(
-    () => matches.filter((m) => m.selected).map((m) => m.companyId),
-    [matches]
-  );
-
-  async function handleFindContacts() {
-    if (selectedIds.length === 0) return;
-    setFindingContacts(true);
-    try {
-      const res = await fetch("/api/find-contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyIds: selectedIds }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const total = data.results.reduce(
-        (sum: number, r: { contacts: number }) => sum + r.contacts, 0
-      );
-      toast.success(`Found ${total} contacts`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed");
-    } finally {
-      setFindingContacts(false);
-    }
-  }
-
-  async function handleDraftEmails() {
-    if (selectedIds.length === 0 || !resumeId) return;
-    setDraftingEmails(true);
-    try {
-      const res = await fetch("/api/draft-emails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId, companyIds: selectedIds }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      toast.success(data.message);
-      window.location.href = "/emails";
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed");
-    } finally {
-      setDraftingEmails(false);
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -226,7 +166,7 @@ export default function MatchesPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Matches</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {filtered.length} companies · {selectedIds.length} selected
+            {filtered.length} companies
           </p>
         </div>
         <div className="flex gap-2">
@@ -239,21 +179,6 @@ export default function MatchesPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFindContacts}
-            disabled={findingContacts || selectedIds.length === 0}
-          >
-            {findingContacts ? "Finding..." : "Find contacts"}
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleDraftEmails}
-            disabled={draftingEmails || selectedIds.length === 0}
-          >
-            {draftingEmails ? "Drafting..." : `Draft emails (${selectedIds.length})`}
           </Button>
         </div>
       </div>
@@ -331,26 +256,6 @@ export default function MatchesPage() {
             <SelectItem value="75">75+</SelectItem>
           </SelectContent>
         </Select>
-        <div className="ml-auto flex gap-1 text-xs">
-          <button
-            onClick={() => setMatches((p) => p.map((m) => ({ ...m, selected: true })))}
-            className="px-2 py-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            All
-          </button>
-          <button
-            onClick={() => setMatches((p) => p.map((m) => ({ ...m, selected: false })))}
-            className="px-2 py-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            None
-          </button>
-          <button
-            onClick={() => setMatches((p) => p.map((m) => ({ ...m, selected: m.overallScore >= 60 })))}
-            className="px-2 py-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            60+
-          </button>
-        </div>
       </div>
 
       {/* Grade + archetype + red-flag filters */}
@@ -408,7 +313,6 @@ export default function MatchesPage() {
           <MatchCard
             key={match.companyId}
             match={match}
-            onToggleSelect={toggleSelect}
             onViewDetail={setDetailMatch}
           />
         ))}
