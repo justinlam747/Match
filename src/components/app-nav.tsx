@@ -28,7 +28,6 @@ const baseLinks = [
   { href: "/matches", label: "Matches" },
   { href: "/interview", label: "Interview" },
   { href: "/emails", label: "Emails" },
-  { href: "/agents", label: "Agents" },
 ];
 
 export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps) {
