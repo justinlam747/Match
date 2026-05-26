@@ -90,7 +90,7 @@ export default async function MatchDetailPage({
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <Link
-          href="/matches"
+          href="/dashboard"
           className="text-xs text-muted-foreground hover:text-foreground"
         >
           ← Back to matches
