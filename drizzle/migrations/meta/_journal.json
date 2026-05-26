@@ -5,71 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1775003540515,
-      "tag": "0000_misty_lilandra",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1775836593780,
-      "tag": "0001_career_ops_scoring",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1775837304150,
-      "tag": "0002_grading_columns",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1775838518296,
-      "tag": "0003_user_profiles",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1775840524377,
-      "tag": "0004_portals",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1775855422821,
-      "tag": "0005_star_stories",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1775855832782,
-      "tag": "0006_tailored_resumes",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1775860522417,
-      "tag": "0007_batch_jobs_jd_cache",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1775860671140,
-      "tag": "0008_evaluation_reports",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1775861000282,
-      "tag": "0009_applications",
+      "when": 1779834533234,
+      "tag": "0000_baseline",
       "breakpoints": true
     }
   ]
