@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { HeroReveal, HeroSlide } from "@/components/gsap-reveal";
 import { lazy, Suspense } from "react";
 
@@ -128,7 +126,7 @@ export function LandingHero() {
       </div>
 
       <div className="relative z-[2] h-full">
-        <div className="max-w-[1400px] mx-auto h-full px-10 md:px-16 lg:px-24">
+        <div className="max-w-[1400px] mx-auto h-full px-6 sm:px-10 md:px-16 lg:px-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             {/* Left — Hero text */}
             <div className="lg:col-span-4 flex flex-col justify-center pt-32 pb-16">
@@ -154,37 +152,6 @@ export function LandingHero() {
                 </p>
               </HeroReveal>
 
-              <HeroReveal delay={0.75} y={20} blur={6}>
-                <div className="mt-10 flex flex-col sm:flex-row items-start gap-4">
-                  <Link href="/login">
-                    <Button
-                      size="lg"
-                      className="h-13 px-10 text-base font-semibold bg-white text-[#F26522] hover:bg-white/90 shadow-xl shadow-black/15 hover:scale-[1.02] transition-all duration-200"
-                    >
-                      Get started free
-                    </Button>
-                  </Link>
-                  <Link href="#features">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="h-13 px-10 text-base border-white/30 text-white hover:bg-white/10 bg-transparent transition-all duration-200"
-                    >
-                      How it works
-                    </Button>
-                  </Link>
-                </div>
-              </HeroReveal>
-
-              <HeroReveal delay={0.9} y={10} blur={4}>
-                <div className="mt-6 flex items-center gap-5 text-sm text-white/50">
-                  <span>Free forever</span>
-                  <span className="w-1 h-1 bg-white/30 rounded-full" />
-                  <span>Google sign-in</span>
-                  <span className="w-1 h-1 bg-white/30 rounded-full" />
-                  <span>2 min setup</span>
-                </div>
-              </HeroReveal>
             </div>
 
             {/* Right — 3 staggered vertical carousels filling full height */}

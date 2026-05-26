@@ -6,7 +6,7 @@ import { ClipReveal } from "@/components/gsap-reveal";
 
 export function LandingCta() {
   return (
-    <section id="how-it-works" className="px-10 md:px-16 lg:px-24 pb-28">
+    <section id="how-it-works" className="px-6 sm:px-10 md:px-16 lg:px-24 pb-28">
       <div className="max-w-[1400px] mx-auto">
         <ClipReveal from="bottom" duration={1}>
           <div className="bg-foreground text-background p-12 sm:p-16 lg:p-24 rounded-3xl relative overflow-hidden">
