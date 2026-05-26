@@ -7,7 +7,6 @@
  */
 
 import type { GradeBreakdown, ParsedResume, UserProfileRow } from "@/lib/db/schema";
-import { logLlmCall } from "./log";
 import { detectArchetype } from "./archetype-detector";
 import type { RoleArchetype } from "./archetypes";
 import { gradeFromDimension, gradeFromOverall, gradeRecommendation, type Grade } from "./grade-calculator";
@@ -229,7 +228,6 @@ function parseScoreJSON(text: string): ScoreOutput | null {
 async function callOpenAI(userPrompt: string): Promise<ScoreOutput | null> {
   if (!process.env.OPENAI_API_KEY) return null;
 
-  const start = performance.now();
   try {
     const OpenAI = (await import("openai")).default;
     const openai = new OpenAI();
@@ -244,24 +242,8 @@ async function callOpenAI(userPrompt: string): Promise<ScoreOutput | null> {
     });
 
     const text = response.choices[0]?.message?.content ?? "";
-    logLlmCall({
-      provider: "openai",
-      model: "gpt-4o-mini",
-      endpoint: "score",
-      inputTokens: response.usage?.prompt_tokens ?? 0,
-      outputTokens: response.usage?.completion_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-    });
     return parseScoreJSON(text);
   } catch {
-    logLlmCall({
-      provider: "openai",
-      model: "gpt-4o-mini",
-      endpoint: "score",
-      latencyMs: Math.round(performance.now() - start),
-      status: "error",
-    });
     return null;
   }
 }

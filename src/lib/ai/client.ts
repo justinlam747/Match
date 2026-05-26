@@ -11,7 +11,6 @@ import { db } from "@/lib/db";
 import { apiKeys } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { decrypt } from "@/lib/crypto";
-import { logLlmCall } from "./log";
 
 export type ModelTier = "fast" | "smart";
 
@@ -104,42 +103,15 @@ export async function chatCompletion(opts: {
   const apiKey = await resolveKey(opts.userId);
   const model = MODELS[opts.tier];
   const maxTokens = opts.maxTokens ?? 2048;
-  const start = performance.now();
 
-  try {
-    const client = new OpenAI({ apiKey });
-    const response = await client.chat.completions.create({
-      model,
-      max_tokens: maxTokens,
-      messages: [
-        { role: "system", content: opts.system },
-        { role: "user", content: opts.prompt },
-      ],
-    });
-    const text = response.choices[0]?.message?.content ?? "";
-    logLlmCall({
-      userId: opts.userId,
-      provider: "openai",
-      model,
-      endpoint: "chat",
-      inputTokens: response.usage?.prompt_tokens ?? 0,
-      outputTokens: response.usage?.completion_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-      metadata: { tier: opts.tier },
-    });
-    return text;
-  } catch (err) {
-    logLlmCall({
-      userId: opts.userId,
-      provider: "openai",
-      model,
-      endpoint: "chat",
-      latencyMs: Math.round(performance.now() - start),
-      status: "error",
-      error: err instanceof Error ? err.message : "Unknown error",
-      metadata: { tier: opts.tier },
-    });
-    throw err;
-  }
+  const client = new OpenAI({ apiKey });
+  const response = await client.chat.completions.create({
+    model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: "system", content: opts.system },
+      { role: "user", content: opts.prompt },
+    ],
+  });
+  return response.choices[0]?.message?.content ?? "";
 }
