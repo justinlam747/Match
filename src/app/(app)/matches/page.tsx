@@ -225,13 +225,13 @@ export default function MatchesPage() {
       )}
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Input
           ref={searchRef}
           placeholder="Search companies, tech, industries... (/)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs h-8 text-sm"
+          className="w-full sm:max-w-xs h-8 text-sm"
         />
         <Select value={sortBy} onValueChange={(v) => v && setSortBy(v)}>
           <SelectTrigger className="w-36 h-8 text-xs">

@@ -165,7 +165,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header row */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
@@ -173,7 +173,7 @@ export default function DashboardPage() {
             {existingMatches > 0 && ` · ${existingMatches} matches`}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer text-sm">
             <input
               type="checkbox"

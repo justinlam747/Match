@@ -309,7 +309,7 @@ export default function AdminPage() {
             {logs.length} shown
           </span>
         </div>
-        <div className="divide-y max-h-[calc(100vh-380px)] overflow-y-auto">
+        <div className="divide-y max-h-[calc(100vh-380px)] overflow-auto">
           {logs.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
               No LLM calls recorded in this window.
@@ -318,7 +318,7 @@ export default function AdminPage() {
             logs.map((log) => (
               <div
                 key={log.id}
-                className={`px-4 py-2.5 flex items-center gap-3 text-sm hover:bg-muted/30 transition-colors ${
+                className={`px-4 py-2.5 flex items-center gap-3 text-sm hover:bg-muted/30 transition-colors min-w-[680px] ${
                   log.status === "error" ? "bg-destructive/5" : ""
                 }`}
               >

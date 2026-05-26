@@ -190,7 +190,7 @@ export default function CareerProfilePage() {
         </Card>
 
         <Tabs defaultValue="roles" className="w-full">
-          <TabsList className="flex flex-wrap h-auto">
+          <TabsList className="flex flex-wrap gap-1 h-auto">
             <TabsTrigger value="roles">1. Roles</TabsTrigger>
             <TabsTrigger value="comp">2. Compensation</TabsTrigger>
             <TabsTrigger value="location">3. Location</TabsTrigger>

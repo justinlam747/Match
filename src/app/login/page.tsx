@@ -180,7 +180,7 @@ export default function LoginPage() {
           </p>
 
           {/* Stats */}
-          <div className="mt-12 flex items-center gap-8 text-white/50">
+          <div className="mt-12 flex items-center gap-4 sm:gap-8 text-white/50">
             <div>
               <div className="text-2xl font-bold text-white/80">3,900+</div>
               <div className="text-xs">startups indexed</div>

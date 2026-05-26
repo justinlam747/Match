@@ -118,7 +118,7 @@ function DocEntry({ doc, label, onDelete }: { doc: Doc; label: string; onDelete:
           {doc.rawText ? (
             <>
               {/* Show profile info (strip README content from display) */}
-              <pre className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto font-sans">
+              <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words leading-relaxed max-h-64 overflow-y-auto font-sans">
                 {doc.rawText.split("\n--- README:")[0].slice(0, 3000)}
               </pre>
               {/* Indicate READMEs are included without showing them */}
