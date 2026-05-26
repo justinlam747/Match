@@ -52,7 +52,6 @@ export const documents = pgTable("documents", {
   title: text("title").notNull(),
   sourceUrl: text("source_url"),
   rawText: text("raw_text").notNull(),
-  extractedData: jsonb("extracted_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [index("documents_user_id_idx").on(t.userId)]);
 
@@ -64,7 +63,6 @@ export const resumes = pgTable("resumes", {
   name: text("name").notNull().default("Untitled Resume"),
   rawText: text("raw_text").notNull(),
   parsedData: jsonb("parsed_data").$type<ParsedResume>(),
-  fileUrl: text("file_url"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [index("resumes_user_id_idx").on(t.userId)]);
@@ -88,7 +86,6 @@ export const ycCompanies = pgTable("yc_companies", {
   logoUrl: text("logo_url"),
   location: text("location"),
   isHiring: boolean("is_hiring").default(false),
-  isTopCompany: boolean("is_top_company").default(false),
   hiringSignals: jsonb("hiring_signals").$type<HiringSignals>(),
   archetype: text("archetype"),
   embedding: vector("embedding"),
@@ -147,38 +144,6 @@ export const apiKeys = pgTable("api_keys", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const userPreferences = pgTable("user_preferences", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull()
-    .unique(),
-  theme: text("theme").default("system").notNull(), // "light" | "dark" | "system"
-  emailTone: text("email_tone").default("professional").notNull(), // "professional" | "casual" | "friendly"
-  minMatchScore: real("min_match_score").default(0.5).notNull(),
-  notifyOnNewMatches: boolean("notify_on_new_matches").default(true).notNull(),
-  notifyOnEmailReplies: boolean("notify_on_email_replies").default(true).notNull(),
-  preferredProvider: aiProviderEnum("preferred_provider"),
-  scoreWeights: jsonb("score_weights").$type<ScoreWeights>(),
-  titleFilterPositive: text("title_filter_positive").array(),
-  titleFilterNegative: text("title_filter_negative").array(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const userConfig = pgTable("user_config", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull()
-    .unique(),
-  emailsPerDay: integer("emails_per_day").default(20).notNull(),
-  apiCallsPerHour: integer("api_calls_per_hour").default(60).notNull(),
-  maxResumes: integer("max_resumes").default(5).notNull(),
-  maxMatchesPerScan: integer("max_matches_per_scan").default(50).notNull(),
-  featureFlags: jsonb("feature_flags").$type<FeatureFlags>().default({}),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
@@ -204,32 +169,7 @@ export const userProfiles = pgTable("user_profiles", {
 
 export type UserProfileRow = typeof userProfiles.$inferSelect;
 
-export const llmLogs = pgTable("llm_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id"),
-  provider: text("provider").notNull(), // openai
-  model: text("model").notNull(),
-  endpoint: text("endpoint").notNull(), // chat | embedding | score
-  inputTokens: integer("input_tokens").default(0).notNull(),
-  outputTokens: integer("output_tokens").default(0).notNull(),
-  costCents: real("cost_cents").default(0).notNull(),
-  latencyMs: integer("latency_ms").default(0).notNull(),
-  status: text("status").default("success").notNull(), // success | error
-  error: text("error"),
-  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (t) => [
-  index("llm_logs_created_at_idx").on(t.createdAt),
-  index("llm_logs_user_id_idx").on(t.userId),
-]);
-
 // Types
-
-export interface FeatureFlags {
-  betaScoring?: boolean;
-  bulkEmail?: boolean;
-  advancedFilters?: boolean;
-}
 
 export interface ParsedResume {
   name: string;
@@ -266,17 +206,6 @@ export interface HiringSignals {
   has_careers_page?: boolean;
   recent_job_posts?: number;
   eng_roles_open?: boolean;
-}
-
-export interface ScoreWeights {
-  tech?: number;
-  industry?: number;
-  stage?: number;
-  hiring?: number;
-  compensation?: number;
-  culture?: number;
-  redFlag?: number;
-  northStar?: number;
 }
 
 export type Grade = "A" | "B" | "C" | "D" | "E" | "F";

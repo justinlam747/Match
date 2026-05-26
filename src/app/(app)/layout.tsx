@@ -12,7 +12,6 @@ export default async function AppLayout({
 
   // Prefer custom avatar from DB over Supabase auth avatar
   let avatar = user.user_metadata?.avatar_url;
-  let isAdmin = false;
   if (user.email && !isLocalTestMode() && process.env.DATABASE_URL) {
     const [{ db }, { users }, { eq }] = await Promise.all([
       import("@/lib/db"),
@@ -20,15 +19,12 @@ export default async function AppLayout({
       import("drizzle-orm"),
     ]);
     const [dbUser] = await db
-      .select({ avatarUrl: users.avatarUrl, tags: users.tags })
+      .select({ avatarUrl: users.avatarUrl })
       .from(users)
       .where(eq(users.email, user.email))
       .limit(1);
     if (dbUser?.avatarUrl) {
       avatar = dbUser.avatarUrl;
-    }
-    if (dbUser?.tags?.includes("admin")) {
-      isAdmin = true;
     }
   }
 
@@ -38,7 +34,6 @@ export default async function AppLayout({
         userName={user.user_metadata?.full_name || user.email || "User"}
         userAvatar={avatar}
         userEmail={user.email || ""}
-        isAdmin={isAdmin}
       />
       <main className="flex-1 flex flex-col">
         <div className="px-6 lg:px-10 py-8 w-full flex-1">

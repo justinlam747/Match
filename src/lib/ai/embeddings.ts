@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { apiKeys } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { decrypt } from "@/lib/crypto";
-import { logLlmCall } from "./log";
 
 async function getOpenAIKey(userId?: string): Promise<string> {
   if (userId) {
@@ -28,21 +27,10 @@ export async function generateEmbedding(
 ): Promise<number[]> {
   const apiKey = await getOpenAIKey(userId);
   const openai = new OpenAI({ apiKey });
-  const start = performance.now();
 
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text.slice(0, 8000),
-  });
-
-  logLlmCall({
-    userId,
-    provider: "openai",
-    model: "text-embedding-3-small",
-    endpoint: "embedding",
-    inputTokens: response.usage?.total_tokens ?? 0,
-    latencyMs: Math.round(performance.now() - start),
-    status: "success",
   });
 
   return response.data[0].embedding;
@@ -58,20 +46,9 @@ export async function generateEmbeddings(
   const results: number[][] = [];
   for (let i = 0; i < texts.length; i += 100) {
     const batch = texts.slice(i, i + 100).map((t) => t.slice(0, 8000));
-    const start = performance.now();
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: batch,
-    });
-    logLlmCall({
-      userId,
-      provider: "openai",
-      model: "text-embedding-3-small",
-      endpoint: "embedding",
-      inputTokens: response.usage?.total_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-      metadata: { batchSize: batch.length },
     });
     results.push(...response.data.map((d) => d.embedding));
   }

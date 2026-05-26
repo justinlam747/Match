@@ -12,16 +12,15 @@ import {
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isClientTestMode } from "@/lib/supabase/config";
 import { useRouter } from "next/navigation";
-import { Shield, User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut } from "lucide-react";
 
 interface AppNavProps {
   userName: string;
   userAvatar?: string;
   userEmail: string;
-  isAdmin?: boolean;
 }
 
-export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps) {
+export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {
   const router = useRouter();
 
   async function handleSignOut() {
@@ -74,12 +73,6 @@ export function AppNav({ userName, userAvatar, userEmail, isAdmin }: AppNavProps
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            {isAdmin && (
-              <DropdownMenuItem onClick={() => router.push("/admin")} className="text-sm">
-                <Shield className="w-4 h-4 mr-2" />
-                Admin
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-sm">
               <LogOut className="w-4 h-4 mr-2" />
