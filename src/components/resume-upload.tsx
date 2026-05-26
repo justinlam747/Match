@@ -63,6 +63,9 @@ export function ResumeUpload({ onParsed }: ResumeUploadProps) {
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+      // Clear the value so picking the SAME file again still fires onChange —
+      // otherwise a retry after a failed parse silently does nothing.
+      e.target.value = "";
       if (file) handleUpload(file);
     },
     [handleUpload]

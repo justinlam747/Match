@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { scoreMatchesBatch } from "@/lib/ai/score-match";
+import { describeAiError } from "@/lib/ai/client";
 import { tryReuseScoredMatches } from "@/lib/ai/match-score-cache";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
@@ -415,6 +416,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Scoring error:", error);
+
+    const aiError = describeAiError(error);
+    if (aiError) {
+      return NextResponse.json({ error: aiError.message }, { status: aiError.status });
+    }
+
     return NextResponse.json(
       { error: "Failed to score matches" },
       { status: 500 }

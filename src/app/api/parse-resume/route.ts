@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseResume } from "@/lib/ai/parse-resume";
+import { describeAiError } from "@/lib/ai/client";
 import { db } from "@/lib/db";
 import { resumes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -94,6 +95,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Resume parse error:", error);
+
+    // Quota / billing / auth issues are the caller's account problem — surface them.
+    const aiError = describeAiError(error);
+    if (aiError) {
+      return NextResponse.json({ error: aiError.message }, { status: aiError.status });
+    }
+
+    // The model returned something that wasn't valid JSON — retryable.
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "The AI returned an unreadable response. Please try parsing again." },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to parse resume" },
       { status: 500 }
