@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { SlideIn, ClipReveal } from "@/components/gsap-reveal";
+import { ClipReveal } from "@/components/gsap-reveal";
 
 export function LandingCta() {
   return (
@@ -18,15 +18,15 @@ export function LandingCta() {
               {/* Left — heading */}
               <div className="lg:col-span-6 space-y-8">
                 <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1]">
-                  Your startup
+                  Your YC
                   <br />
-                  career <span className="inline-block w-12 h-12 bg-primary rounded-xl align-middle" />{" "}
-                  on
+                  shortlist <span className="inline-block w-12 h-12 bg-primary rounded-xl align-middle" />{" "}
+                  in
                   <br />
-                  autopilot.
+                  minutes.
                 </h2>
                 <p className="text-white/50 max-w-lg leading-relaxed text-xl">
-                  Match replaces your spreadsheets, email finders, and job boards with one AI-powered pipeline. From resume upload to interview prep in minutes, not weeks.
+                  Match scores your resume against all 500+ YC companies and ranks them by fit — turning a weekend of manual research into a couple of minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/login">
@@ -55,22 +55,12 @@ export function LandingCta() {
                   {
                     step: "02",
                     title: "Get matched with 500+ YC startups",
-                    desc: "Scored on 4 dimensions: tech overlap, industry fit, hiring signals, and stage match.",
+                    desc: "Scored on 8 dimensions: tech, industry, stage, hiring, compensation, culture, trajectory, and red flags.",
                   },
                   {
                     step: "03",
-                    title: "Discover decision makers",
-                    desc: "Automatically finds CTOs, founders, and hiring managers at your top matches.",
-                  },
-                  {
-                    step: "04",
-                    title: "Draft & send personalized emails",
-                    desc: "AI writes cold emails that reference your experience and their specific product. Send via Gmail.",
-                  },
-                  {
-                    step: "05",
-                    title: "Prep for interviews",
-                    desc: "AI-generated flashcards: technical questions, behavioral prompts, and company knowledge quizzes.",
+                    title: "Review your ranked shortlist",
+                    desc: "Every company gets a 0-100 score, a letter grade, and a plain-English explanation. Export to CSV.",
                   },
                 ].map((item, i) => (
                   <div
