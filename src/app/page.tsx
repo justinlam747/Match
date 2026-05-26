@@ -21,7 +21,7 @@ export default function LandingPage() {
 
       {/* Footer — wide, editorial */}
       <footer className="border-t">
-        <div className="max-w-[1400px] mx-auto px-10 md:px-16 lg:px-24 py-20">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 md:px-16 lg:px-24 py-20">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-5">
               <div className="flex items-center gap-2.5 mb-4">

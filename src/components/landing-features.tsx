@@ -415,7 +415,7 @@ function BeforeAfterSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="px-10 md:px-16 lg:px-24 py-36 overflow-hidden">
+    <section ref={sectionRef} className="px-6 sm:px-10 md:px-16 lg:px-24 py-36 overflow-hidden">
       <div className="max-w-[1400px] mx-auto">
         <SlideIn direction="left" distance={80}>
           <div className="max-w-2xl mb-16">
@@ -546,7 +546,7 @@ export function LandingFeatures() {
   return (
     <>
       <section id="features" className="relative bg-background text-foreground py-32 overflow-hidden">
-        <div className="relative z-10 px-10 md:px-16 lg:px-24 max-w-[1400px] mx-auto">
+        <div className="relative z-10 px-6 sm:px-10 md:px-16 lg:px-24 max-w-[1400px] mx-auto">
           <SlideIn direction="left" distance={80}>
             <div className="max-w-3xl mb-20">
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1]">
