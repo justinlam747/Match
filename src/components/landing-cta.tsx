@@ -26,7 +26,7 @@ export function LandingCta() {
                   minutes.
                 </h2>
                 <p className="text-white/50 max-w-lg leading-relaxed text-xl">
-                  Match scores your resume against all 500+ YC companies and ranks them by fit — turning a weekend of manual research into a couple of minutes.
+                  Match scores your resume against all 3,900+ YC companies and ranks them by fit — turning a weekend of manual research into a couple of minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/login">
@@ -54,7 +54,7 @@ export function LandingCta() {
                   },
                   {
                     step: "02",
-                    title: "Get matched with 500+ YC startups",
+                    title: "Get matched with 3,900+ YC startups",
                     desc: "Scored on 8 dimensions: tech, industry, stage, hiring, compensation, culture, trajectory, and red flags.",
                   },
                   {

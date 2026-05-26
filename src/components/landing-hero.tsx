@@ -129,33 +129,33 @@ export function LandingHero() {
         <div className="max-w-[1400px] mx-auto h-full px-6 sm:px-10 md:px-16 lg:px-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             {/* Left — Hero text */}
-            <div className="lg:col-span-4 flex flex-col justify-center pt-32 pb-16">
+            <div className="lg:col-span-5 flex flex-col justify-center pt-32 pb-16">
               <HeroSlide direction="left" delay={0.15} distance={80}>
-                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.9] text-white">
+                <h1 className="text-[clamp(2.5rem,4.5vw,4.5rem)] whitespace-nowrap font-bold tracking-[-0.04em] leading-[0.9] text-white">
                   Find work
                 </h1>
               </HeroSlide>
               <HeroSlide direction="left" delay={0.3} distance={80}>
-                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.9] text-white mt-1">
+                <h1 className="text-[clamp(2.5rem,4.5vw,4.5rem)] whitespace-nowrap font-bold tracking-[-0.04em] leading-[0.9] text-white mt-1">
                   that fits
                 </h1>
               </HeroSlide>
               <HeroSlide direction="left" delay={0.45} distance={80}>
-                <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.9] text-white/50 mt-1">
+                <h1 className="text-[clamp(2.5rem,4.5vw,4.5rem)] whitespace-nowrap font-bold tracking-[-0.04em] leading-[0.9] text-white/50 mt-1">
                   you.
                 </h1>
               </HeroSlide>
 
               <HeroReveal delay={0.6} y={20} blur={6}>
                 <p className="mt-8 text-lg text-white/70 leading-relaxed max-w-sm">
-                  AI-powered matching with 500+ YC startups. Upload your resume, get a ranked shortlist of the companies that actually fit.
+                  AI-powered matching with <span className="font-bold text-white">3,900+</span> YC startups. Upload your resume, get a ranked shortlist of the companies that actually fit.
                 </p>
               </HeroReveal>
 
             </div>
 
             {/* Right — 3 staggered vertical carousels filling full height */}
-            <div className="lg:col-span-8 hidden lg:grid grid-cols-4 gap-3 pt-20 h-screen ml-8">
+            <div className="lg:col-span-7 hidden lg:grid grid-cols-4 gap-3 pt-20 h-screen ml-8">
               <HeroReveal delay={0.2} y={0} blur={0}>
                 <VerticalCarousel items={col1} duration={28} className="!h-[calc(100vh-80px)]" />
               </HeroReveal>
