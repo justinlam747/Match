@@ -24,39 +24,18 @@ export async function GET() {
   return NextResponse.json({ keys });
 }
 
-// POST — save or update a key
+// POST — save or update the user's OpenAI key
 export async function POST(request: NextRequest) {
   const user = await getApiUser();
   if (!user) return unauthorized();
 
   const body = await request.json();
-  const { provider, apiKey } = body as {
-    provider: "anthropic" | "openai";
-    apiKey: string;
-  };
+  const { apiKey } = body as { apiKey: string };
 
-  if (!provider || !apiKey) {
-    return NextResponse.json(
-      { error: "provider and apiKey are required" },
-      { status: 400 }
-    );
+  if (!apiKey) {
+    return NextResponse.json({ error: "apiKey is required" }, { status: 400 });
   }
-
-  if (!["anthropic", "openai"].includes(provider)) {
-    return NextResponse.json(
-      { error: "provider must be 'anthropic' or 'openai'" },
-      { status: 400 }
-    );
-  }
-
-  // Basic key format validation
-  if (provider === "anthropic" && !apiKey.startsWith("sk-ant-")) {
-    return NextResponse.json(
-      { error: "Anthropic keys start with sk-ant-" },
-      { status: 400 }
-    );
-  }
-  if (provider === "openai" && !apiKey.startsWith("sk-")) {
+  if (!apiKey.startsWith("sk-")) {
     return NextResponse.json(
       { error: "OpenAI keys start with sk-" },
       { status: 400 }
@@ -70,15 +49,13 @@ export async function POST(request: NextRequest) {
   const [saved] = await db.transaction(async (tx) => {
     await tx
       .delete(apiKeys)
-      .where(
-        and(eq(apiKeys.userId, user.id), eq(apiKeys.provider, provider))
-      );
+      .where(and(eq(apiKeys.userId, user.id), eq(apiKeys.provider, "openai")));
 
     return tx
       .insert(apiKeys)
       .values({
         userId: user.id,
-        provider,
+        provider: "openai",
         encryptedKey: encrypted,
         keyHint,
         iv,
@@ -90,29 +67,14 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ key: saved });
 }
 
-// DELETE — remove a key
-export async function DELETE(request: NextRequest) {
+// DELETE — remove the user's OpenAI key
+export async function DELETE() {
   const user = await getApiUser();
   if (!user) return unauthorized();
 
-  const { searchParams } = new URL(request.url);
-  const provider = searchParams.get("provider");
-
-  if (!provider || !["anthropic", "openai"].includes(provider)) {
-    return NextResponse.json(
-      { error: "provider query param required (anthropic or openai)" },
-      { status: 400 }
-    );
-  }
-
   await db
     .delete(apiKeys)
-    .where(
-      and(
-        eq(apiKeys.userId, user.id),
-        eq(apiKeys.provider, provider as "anthropic" | "openai")
-      )
-    );
+    .where(and(eq(apiKeys.userId, user.id), eq(apiKeys.provider, "openai")));
 
   return NextResponse.json({ deleted: true });
 }

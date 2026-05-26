@@ -1,14 +1,11 @@
 /**
- * Unified AI client — supports BYOK (user keys) and server keys.
+ * Unified AI client — OpenAI only.
  *
  * Key resolution order:
- *   1. User's own key (stored encrypted in DB) — if userId is provided
- *   2. Server-level env var (ANTHROPIC_API_KEY / OPENAI_API_KEY)
- *
- * Provider priority: anthropic → openai (override with AI_PROVIDER env var)
+ *   1. User's own OpenAI key (stored encrypted in DB) — if userId is provided
+ *   2. Server-level OPENAI_API_KEY
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { db } from "@/lib/db";
 import { apiKeys } from "@/lib/db/schema";
@@ -16,31 +13,19 @@ import { eq, and } from "drizzle-orm";
 import { decrypt } from "@/lib/crypto";
 import { logLlmCall } from "./log";
 
-export type Provider = "anthropic" | "openai";
 export type ModelTier = "fast" | "smart";
 
 const MODELS = {
-  anthropic: {
-    fast: "claude-haiku-4-5-20251001",
-    smart: "claude-sonnet-4-6-20250514",
-  },
-  openai: {
-    fast: "gpt-4o-mini",
-    smart: "gpt-4o",
-  },
+  fast: "gpt-4o-mini",
+  smart: "gpt-4o",
 } as const;
 
-interface ResolvedKey {
-  provider: Provider;
-  apiKey: string;
-}
-
-async function getUserKey(userId: string, provider: Provider): Promise<string | null> {
+async function getUserKey(userId: string): Promise<string | null> {
   try {
     const [row] = await db
       .select()
       .from(apiKeys)
-      .where(and(eq(apiKeys.userId, userId), eq(apiKeys.provider, provider)))
+      .where(and(eq(apiKeys.userId, userId), eq(apiKeys.provider, "openai")))
       .limit(1);
 
     if (!row) return null;
@@ -50,29 +35,19 @@ async function getUserKey(userId: string, provider: Provider): Promise<string | 
   }
 }
 
-async function resolveKey(userId?: string): Promise<ResolvedKey> {
-  const forced = process.env.AI_PROVIDER as Provider | undefined;
-  const preferredOrder: Provider[] =
-    forced === "openai" ? ["openai", "anthropic"] : ["anthropic", "openai"];
-
-  // 1. Check user's BYOK keys
+async function resolveKey(userId?: string): Promise<string> {
+  // 1. User's BYOK OpenAI key
   if (userId) {
-    for (const provider of preferredOrder) {
-      const key = await getUserKey(userId, provider);
-      if (key) return { provider, apiKey: key };
-    }
+    const key = await getUserKey(userId);
+    if (key) return key;
   }
 
-  // 2. Fall back to server env vars
-  for (const provider of preferredOrder) {
-    const envKey =
-      provider === "anthropic"
-        ? process.env.ANTHROPIC_API_KEY
-        : process.env.OPENAI_API_KEY;
-    if (envKey) return { provider, apiKey: envKey };
-  }
+  // 2. Server env var
+  if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY;
 
-  throw new Error("No AI API key found. Add your key in Settings or set ANTHROPIC_API_KEY / OPENAI_API_KEY.");
+  throw new Error(
+    "No OpenAI API key found. Add your key in Settings or set OPENAI_API_KEY."
+  );
 }
 
 export async function chatCompletion(opts: {
@@ -82,35 +57,12 @@ export async function chatCompletion(opts: {
   maxTokens?: number;
   userId?: string;
 }): Promise<string> {
-  const { provider, apiKey } = await resolveKey(opts.userId);
-  const model = MODELS[provider][opts.tier];
+  const apiKey = await resolveKey(opts.userId);
+  const model = MODELS[opts.tier];
   const maxTokens = opts.maxTokens ?? 2048;
   const start = performance.now();
 
   try {
-    if (provider === "anthropic") {
-      const client = new Anthropic({ apiKey });
-      const response = await client.messages.create({
-        model,
-        max_tokens: maxTokens,
-        system: opts.system,
-        messages: [{ role: "user", content: opts.prompt }],
-      });
-      const text = response.content[0].type === "text" ? response.content[0].text : "";
-      logLlmCall({
-        userId: opts.userId,
-        provider,
-        model,
-        endpoint: "chat",
-        inputTokens: response.usage?.input_tokens ?? 0,
-        outputTokens: response.usage?.output_tokens ?? 0,
-        latencyMs: Math.round(performance.now() - start),
-        status: "success",
-        metadata: { tier: opts.tier },
-      });
-      return text;
-    }
-
     const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
       model,
@@ -123,7 +75,7 @@ export async function chatCompletion(opts: {
     const text = response.choices[0]?.message?.content ?? "";
     logLlmCall({
       userId: opts.userId,
-      provider,
+      provider: "openai",
       model,
       endpoint: "chat",
       inputTokens: response.usage?.prompt_tokens ?? 0,
@@ -136,7 +88,7 @@ export async function chatCompletion(opts: {
   } catch (err) {
     logLlmCall({
       userId: opts.userId,
-      provider,
+      provider: "openai",
       model,
       endpoint: "chat",
       latencyMs: Math.round(performance.now() - start),
