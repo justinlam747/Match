@@ -207,7 +207,7 @@ export type UserProfileRow = typeof userProfiles.$inferSelect;
 export const llmLogs = pgTable("llm_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id"),
-  provider: text("provider").notNull(), // anthropic | openai | groq | local
+  provider: text("provider").notNull(), // openai
   model: text("model").notNull(),
   endpoint: text("endpoint").notNull(), // chat | embedding | score
   inputTokens: integer("input_tokens").default(0).notNull(),

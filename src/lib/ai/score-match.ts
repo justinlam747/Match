@@ -1,14 +1,7 @@
 /**
- * Resume-company scoring with provider fallback chain:
- *   1. Local fine-tuned model (./yc-match-scorer-merged) — FREE, no API calls
- *   2. Hugging Face fine-tuned model — if HF_MODEL_ID is set
- *   3. Groq Llama 3.3 (free tier, 30 req/min) — if GROQ_API_KEY is set
- *   4. Claude Haiku — if ANTHROPIC_API_KEY is set (paid)
- *   5. OpenAI gpt-4o-mini — if OPENAI_API_KEY is set (paid)
- *   6. Local heuristic — zero cost, zero latency fallback
- *
- * The local model was fine-tuned on 6,373 real resume-job pairs
- * from the HuggingFace ATS score dataset (Apache 2.0).
+ * Resume-company scoring:
+ *   1. OpenAI gpt-4o-mini — if OPENAI_API_KEY is set
+ *   2. Local rule-based heuristic — zero cost, zero latency fallback
  *
  * Scoring framework adapted from career-ops (MIT). See THIRD_PARTY_LICENSES.md.
  */
@@ -231,179 +224,7 @@ function parseScoreJSON(text: string): ScoreOutput | null {
   return null;
 }
 
-/* ── Provider 1: Local model server (python scripts/model-server.py) ── */
-
-const LOCAL_MODEL_URL = process.env.MODEL_SERVER_URL || "http://localhost:8787";
-
-async function callLocalServer(userPrompt: string): Promise<ScoreOutput | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch(`${LOCAL_MODEL_URL}/score`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system: SYSTEM_PROMPT, prompt: userPrompt }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    return parseScoreJSON(data.result || "");
-  } catch {
-    clearTimeout(timeout);
-    // Server not running — fall through to next provider
-    return null;
-  }
-}
-
-/* ── Provider 2: Hugging Face hosted fine-tuned model ── */
-
-async function callHuggingFace(userPrompt: string): Promise<ScoreOutput | null> {
-  const modelId = process.env.HF_MODEL_ID;
-  if (!modelId) return null;
-
-  const start = performance.now();
-  try {
-    const response = await fetch(
-      `https://api-inference.huggingface.co/models/${modelId}/v1/chat/completions`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(process.env.HF_TOKEN ? { Authorization: `Bearer ${process.env.HF_TOKEN}` } : {}),
-        },
-        body: JSON.stringify({
-          model: modelId,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userPrompt },
-          ],
-          max_tokens: 768,
-          temperature: 0.1,
-          response_format: { type: "json_object" },
-        }),
-      }
-    );
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "";
-    logLlmCall({
-      provider: "local",
-      model: modelId,
-      endpoint: "score",
-      inputTokens: data.usage?.prompt_tokens ?? 0,
-      outputTokens: data.usage?.completion_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-    });
-    return parseScoreJSON(text);
-  } catch {
-    logLlmCall({
-      provider: "local",
-      model: modelId,
-      endpoint: "score",
-      latencyMs: Math.round(performance.now() - start),
-      status: "error",
-    });
-    return null;
-  }
-}
-
-/* ── Provider 3: Groq (free Llama 3.3) ── */
-
-async function callGroq(userPrompt: string): Promise<ScoreOutput | null> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
-
-  const start = performance.now();
-  try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 768,
-        temperature: 0.1,
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "";
-    logLlmCall({
-      provider: "groq",
-      model: "llama-3.3-70b-versatile",
-      endpoint: "score",
-      inputTokens: data.usage?.prompt_tokens ?? 0,
-      outputTokens: data.usage?.completion_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-    });
-    return parseScoreJSON(text);
-  } catch {
-    logLlmCall({
-      provider: "groq",
-      model: "llama-3.3-70b-versatile",
-      endpoint: "score",
-      latencyMs: Math.round(performance.now() - start),
-      status: "error",
-    });
-    return null;
-  }
-}
-
-/* ── Provider 4: Claude Haiku (paid) ── */
-
-async function callClaude(userPrompt: string): Promise<ScoreOutput | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-
-  const start = performance.now();
-  try {
-    const Anthropic = (await import("@anthropic-ai/sdk")).default;
-    const anthropic = new Anthropic();
-
-    const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 768,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    });
-
-    const text = response.content[0].type === "text" ? response.content[0].text : "";
-    logLlmCall({
-      provider: "anthropic",
-      model: "claude-haiku-4-5-20251001",
-      endpoint: "score",
-      inputTokens: response.usage?.input_tokens ?? 0,
-      outputTokens: response.usage?.output_tokens ?? 0,
-      latencyMs: Math.round(performance.now() - start),
-      status: "success",
-    });
-    return parseScoreJSON(text);
-  } catch {
-    logLlmCall({
-      provider: "anthropic",
-      model: "claude-haiku-4-5-20251001",
-      endpoint: "score",
-      latencyMs: Math.round(performance.now() - start),
-      status: "error",
-    });
-    return null;
-  }
-}
-
-/* ── Provider 5: OpenAI (paid) ── */
+/* ── Provider 1: OpenAI ── */
 
 async function callOpenAI(userPrompt: string): Promise<ScoreOutput | null> {
   if (!process.env.OPENAI_API_KEY) return null;
@@ -445,7 +266,7 @@ async function callOpenAI(userPrompt: string): Promise<ScoreOutput | null> {
   }
 }
 
-/* ── Provider 6: Local heuristic (zero cost, zero latency) ── */
+/* ── Provider 2: Local heuristic (zero cost, zero latency) ── */
 
 function localHeuristic(resume: ParsedResume, company: CompanyData): ScoreOutput {
   // Tech score
@@ -535,14 +356,8 @@ export async function scoreMatch(
 ): Promise<MatchResult> {
   const prompt = buildPrompt(resume, company);
 
-  // Try providers in order: local Qwen server → hosted fine-tuned Qwen → Groq → Claude → OpenAI → heuristic
-  let scores: ScoreOutput | null = null;
-
-  if (!scores) scores = await callLocalServer(prompt);
-  if (!scores) scores = await callHuggingFace(prompt);
-  if (!scores) scores = await callGroq(prompt);
-  if (!scores) scores = await callClaude(prompt);
-  if (!scores) scores = await callOpenAI(prompt);
+  // Try OpenAI, then fall back to the local rule-based heuristic.
+  let scores: ScoreOutput | null = await callOpenAI(prompt);
   if (!scores) scores = localHeuristic(resume, company);
 
   // Profile-aware archetype boost: if the company's role matches one of
