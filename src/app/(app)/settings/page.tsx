@@ -210,7 +210,7 @@ export default function SettingsPage() {
               Select which profile photo to use across Match.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-3 gap-4 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4">
             {Object.entries(avatarOptions).map(([source, url]) => (
               <button
                 key={source}

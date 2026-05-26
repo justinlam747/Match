@@ -3,14 +3,14 @@ import Link from "next/link";
 export function AppFooter() {
   return (
     <footer className="border-t mt-auto">
-      <div className="px-6 lg:px-10 py-4 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="px-6 lg:px-10 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-primary text-primary-foreground font-bold text-[8px] flex items-center justify-center">
             M
           </div>
           <span>Match</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
           <Link href="/matches" className="hover:text-foreground transition-colors">Matches</Link>
           <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>

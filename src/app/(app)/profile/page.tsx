@@ -298,7 +298,7 @@ export default function ProfilePage() {
             {parsed.experience.map((exp, i) => (
               <div key={i} className={i > 0 ? "pt-4 border-t" : ""}>
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">{exp.title}</p>
                     <p className="text-sm text-muted-foreground">{exp.company}</p>
                   </div>
