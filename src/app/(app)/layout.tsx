@@ -1,5 +1,5 @@
 import { requireAuth } from "@/lib/supabase/auth-guard";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppNav } from "@/components/app-nav";
 import { AppFooter } from "@/components/app-footer";
 import { isLocalTestMode } from "@/lib/supabase/config";
 
@@ -33,15 +33,14 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      <AppSidebar
+    <div className="min-h-screen flex flex-col">
+      <AppNav
         userName={user.user_metadata?.full_name || user.email || "User"}
         userAvatar={avatar}
         userEmail={user.email || ""}
         isAdmin={isAdmin}
       />
-      {/* Mobile: full width. Desktop: offset by sidebar width */}
-      <main className="md:pl-56 min-h-screen flex flex-col">
+      <main className="flex-1 flex flex-col">
         <div className="px-6 lg:px-10 py-8 w-full flex-1">
           {children}
         </div>

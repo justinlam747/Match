@@ -12,7 +12,6 @@ export function AppFooter() {
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
-          <Link href="/matches" className="hover:text-foreground transition-colors">Matches</Link>
           <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
           <Link href="/legal/third-party" className="hover:text-foreground transition-colors">Matching engine inspired by career-ops (MIT)</Link>
         </div>
