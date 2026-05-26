@@ -1,5 +1,9 @@
 @AGENTS.md
 
+# Secrets — DO NOT SKIP
+
+**Never read `.env.local`** (or any `.env*` file containing real secrets). Do not open it, cat it, grep it, or print its contents. If you need to know which environment variables exist, consult `.env.example` instead, which lists the variable names without values.
+
 # Git workflow — DO NOT SKIP
 
 ## Rules
