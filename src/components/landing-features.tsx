@@ -383,71 +383,36 @@ function MatchScoreCard() {
    ═══════════════════════════════════════════════ */
 
 function BeforeAfterSection() {
-  const [phase, setPhase] = useState<"chaos" | "transform" | "clean">("chaos");
   const sectionRef = useRef<HTMLDivElement>(null);
-  const chaosRef = useRef<HTMLDivElement>(null);
-  const cleanRef = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+  const [inView, setInView] = useState(false);
 
   const chaosTools = [
-    { name: "Spreadsheet", color: "bg-emerald-500/20 border-emerald-500/30", rot: -3, x: 0, y: 0 },
-    { name: "Job Board", color: "bg-blue-500/20 border-blue-500/30", rot: 2, x: 20, y: -10 },
-    { name: "Email Finder", color: "bg-purple-500/20 border-purple-500/30", rot: -1, x: -15, y: 5 },
-    { name: "LinkedIn", color: "bg-sky-500/20 border-sky-500/30", rot: 4, x: 10, y: -5 },
-    { name: "Company Wiki", color: "bg-amber-500/20 border-amber-500/30", rot: -2, x: -5, y: 10 },
-    { name: "Gmail", color: "bg-red-500/20 border-red-500/30", rot: 1, x: 25, y: 0 },
+    { name: "Spreadsheet", rot: -3 },
+    { name: "Job board", rot: 2 },
+    { name: "Email finder", rot: -2 },
+    { name: "LinkedIn", rot: 3 },
+    { name: "Company wiki", rot: -1 },
+    { name: "Gmail", rot: 2 },
   ];
 
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const runCycle = useCallback(function runCycle() {
-    clearTimers();
-    setPhase("chaos");
-
-    const t1 = setTimeout(() => {
-      setPhase("transform");
-
-      if (chaosRef.current) {
-        const cards = chaosRef.current.querySelectorAll("[data-chaos-card]");
-        gsap.to(cards, {
-          scale: 0.5, opacity: 0, rotation: 0, y: 40,
-          duration: 0.6, stagger: 0.08, ease: "power3.in",
-        });
-      }
-
-      const t2 = setTimeout(() => {
-        setPhase("clean");
-
-        if (cleanRef.current) {
-          const rows = cleanRef.current.querySelectorAll("[data-clean-row]");
-          gsap.fromTo(rows,
-            { opacity: 0, y: 20, filter: "blur(4px)" },
-            { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, stagger: 0.1, ease: "power3.out" }
-          );
-        }
-
-        const t3 = setTimeout(() => runCycle(), 6000);
-        timers.current.push(t3);
-      }, 800);
-      timers.current.push(t2);
-    }, 5000);
-    timers.current.push(t1);
-  }, [clearTimers]);
+  const scored = [
+    { label: "Overall match", value: "87 / 100", bar: 87, avatar: 0 },
+    { label: "Grade", value: "A", bar: 92, avatar: 1 },
+    { label: "Tech alignment", value: "Strong", bar: 82, avatar: 2 },
+    { label: "Red-flag check", value: "Clear", bar: 95, avatar: 3 },
+  ];
 
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const st = ScrollTrigger.create({
-      trigger: el, start: "top 70%",
-      onEnter: () => { if (!started.current) { started.current = true; runCycle(); } },
+      trigger: el, start: "top 80%",
+      onEnter: () => setInView(true),
     });
-    return () => { st.kill(); clearTimers(); };
-  }, [runCycle, clearTimers]);
+    // Fallback so the bars always fill even if ScrollTrigger never fires.
+    const fallback = setTimeout(() => setInView(true), 1500);
+    return () => { st.kill(); clearTimeout(fallback); };
+  }, []);
 
   return (
     <section ref={sectionRef} className="px-10 md:px-16 lg:px-24 py-36 overflow-hidden">
@@ -468,49 +433,49 @@ function BeforeAfterSection() {
           </div>
         </SlideIn>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* BEFORE */}
-          <div className="relative">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {/* BEFORE — light, cluttered */}
+          <div className="flex flex-col">
             <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
               <span>Without Match</span>
-              <div className={`h-px flex-1 transition-all duration-1000 ${phase === "chaos" ? "bg-destructive/30" : "bg-border/30"}`} />
+              <div className="h-px flex-1 bg-border" />
             </div>
-            <div
-              ref={chaosRef}
-              className={`relative bg-muted/30 border border-border/50 rounded-2xl p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
-                phase === "chaos" ? "opacity-100" : "opacity-40"
-              }`}
-            >
-              <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-                <Avatar className="w-10 h-10" {...avatarConfigs[6]} />
-                <div className="text-xs text-muted-foreground">
-                  <div className="font-medium">You, probably</div>
-                  <div className="text-destructive/70">12 tabs open</div>
+            <div className="relative flex-1 flex flex-col bg-card border border-border p-8 min-h-[420px] overflow-hidden">
+              <div className="absolute top-5 right-5 flex items-center gap-2.5 z-10">
+                <Avatar className="w-9 h-9" {...avatarConfigs[6]} />
+                <div className="text-xs leading-tight">
+                  <div className="font-medium text-foreground">You, probably</div>
+                  <div className="text-destructive">12 tabs open</div>
                 </div>
               </div>
-              <div className="relative h-[340px]">
+
+              {/* scattered tool windows */}
+              <div className="relative flex-1 mt-12 min-h-[280px]">
                 {chaosTools.map((tool, i) => (
                   <div
                     key={tool.name}
-                    data-chaos-card
-                    className={`absolute ${tool.color} border backdrop-blur-sm rounded-xl p-4 w-[180px] shadow-lg transition-transform duration-300 hover:scale-105`}
+                    className="absolute w-[170px] bg-background border border-border p-3.5 shadow-sm transition-transform duration-300 hover:scale-[1.03]"
                     style={{
-                      top: `${15 + (i % 3) * 100}px`,
-                      left: `${(i % 2) * 45 + tool.x}%`,
-                      transform: `rotate(${tool.rot}deg) translate(${tool.x}px, ${tool.y}px)`,
+                      top: `${(i % 3) * 92}px`,
+                      left: `${(i % 2) * 46}%`,
+                      transform: `rotate(${tool.rot}deg)`,
                       zIndex: i,
                     }}
                   >
-                    <div className="text-xs font-medium mb-2">{tool.name}</div>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="w-4 h-4 bg-muted-foreground/20" />
+                      <div className="text-[11px] font-medium text-foreground/70">{tool.name}</div>
+                    </div>
                     <div className="space-y-1.5">
-                      <div className="h-2 bg-foreground/10 w-full" />
-                      <div className="h-2 bg-foreground/10 w-3/4" />
-                      <div className="h-2 bg-foreground/10 w-1/2" />
+                      <div className="h-1.5 bg-foreground/[0.08] w-full" />
+                      <div className="h-1.5 bg-foreground/[0.08] w-3/4" />
+                      <div className="h-1.5 bg-foreground/[0.08] w-1/2" />
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-muted-foreground/60">
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 mt-4 border-t border-border">
                 <span>6 tools</span>
                 <span>$200+/mo</span>
                 <span>hours wasted</span>
@@ -518,75 +483,55 @@ function BeforeAfterSection() {
             </div>
           </div>
 
-          {/* AFTER */}
-          <div className="relative">
+          {/* AFTER — dark, scored */}
+          <div className="flex flex-col">
             <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
               <span>With Match</span>
-              <div className={`h-px flex-1 transition-all duration-1000 ${phase === "clean" ? "bg-primary/50" : "bg-border/30"}`} />
+              <div className="h-px flex-1 bg-primary/60" />
             </div>
-            <div
-              ref={cleanRef}
-              className={`relative bg-[#1a1a1a] border border-[#1a1a1a] rounded-2xl p-8 min-h-[420px] overflow-hidden transition-all duration-700 ${
-                phase === "clean" ? "opacity-100" : "opacity-40"
-              }`}
-            >
-              <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-                <Avatar className="w-10 h-10" {...avatarConfigs[6]} />
-                <div className="text-xs text-white/50">
-                  <div className="font-medium text-white/80">You, after</div>
+            <div className="relative flex-1 flex flex-col bg-foreground text-background p-8 min-h-[420px] overflow-hidden">
+              <div className="absolute top-5 right-5 flex items-center gap-2.5 z-10">
+                <Avatar className="w-9 h-9" {...avatarConfigs[6]} />
+                <div className="text-xs leading-tight">
+                  <div className="font-medium text-background/90">You, after</div>
                   <div className="text-primary">1 tab. done.</div>
                 </div>
               </div>
-              <div className="space-y-3 mt-10">
-                {[
-                  { label: "Overall match", value: "87/100", bar: 87, avatar: 0 },
-                  { label: "Grade", value: "A", bar: 90, avatar: 1 },
-                  { label: "Tech alignment", value: "Strong", bar: 82, avatar: 2 },
-                  { label: "Red-flag check", value: "Clear", bar: 95, avatar: 3 },
-                ].map((row, i) => (
+
+              <div className="space-y-3 mt-12">
+                {scored.map((row, i) => (
                   <div
                     key={row.label}
-                    data-clean-row
-                    className="flex items-center gap-3 p-3 bg-white/[0.06] border border-white/[0.06] rounded-xl"
+                    className="flex items-center gap-3 p-3 bg-background/[0.06] border border-background/[0.08]"
                   >
                     <Avatar className="w-7 h-7 flex-shrink-0" {...avatarConfigs[row.avatar]} />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-white/50">{row.label}</span>
-                        <span className="text-xs text-primary font-medium">{row.value}</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs text-background/55">{row.label}</span>
+                        <span className="text-xs text-primary font-semibold tabular-nums">{row.value}</span>
                       </div>
-                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-1 bg-background/10 overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                          style={{ width: phase === "clean" ? `${row.bar}%` : "0%", transitionDelay: `${i * 200}ms` }}
+                          className="h-full bg-primary transition-[width] duration-1000 ease-out"
+                          style={{ width: inView ? `${row.bar}%` : "0%", transitionDelay: `${i * 150}ms` }}
                         />
                       </div>
                     </div>
                   </div>
                 ))}
-                <div data-clean-row className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl mt-2">
-                  <span className="text-xs text-white/60">8-dimension breakdown + explanation</span>
-                  <div className="px-3 py-1 bg-primary rounded-lg text-xs font-medium text-white">View match</div>
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary/15 border border-primary/25">
+                  <span className="text-xs text-background/70">8-dimension breakdown + explanation</span>
+                  <div className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium whitespace-nowrap">View match</div>
                 </div>
               </div>
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/30">
+
+              <div className="flex items-center justify-between text-xs text-background/40 pt-4 mt-auto border-t border-background/10">
                 <span>1 tool</span>
                 <span>Free</span>
                 <span>2 min setup</span>
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-3 mt-8">
-          {(["chaos", "transform", "clean"] as const).map((p) => (
-            <div
-              key={p}
-              className={`h-1 rounded-full transition-all duration-500 ${
-                phase === p ? "w-8 bg-primary" : "w-3 bg-border"
-              }`}
-            />
-          ))}
         </div>
       </div>
     </section>
