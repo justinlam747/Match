@@ -233,7 +233,7 @@ function ResumeCard() {
   );
 }
 
-/* ── 500+ Counter ── */
+/* ── 3,900+ Counter ── */
 function CounterCard() {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -245,7 +245,7 @@ function CounterCard() {
       trigger: el, start: "top 85%",
       onEnter: () => {
         const obj = { val: 0 };
-        gsap.to(obj, { val: 500, duration: 2, ease: "power2.out", onUpdate: () => setCount(Math.round(obj.val)) });
+        gsap.to(obj, { val: 3900, duration: 2, ease: "power2.out", onUpdate: () => setCount(Math.round(obj.val)) });
       },
     });
     return () => { st.kill(); };
@@ -255,7 +255,7 @@ function CounterCard() {
     <div ref={ref} className="relative p-8 text-white rounded-2xl h-full flex flex-col justify-between overflow-hidden">
       <GrainBg preset="orangeWarm" />
       <div className="relative z-10">
-        <span className="text-7xl sm:text-8xl font-bold tracking-tight">{count}+</span>
+        <span className="text-7xl sm:text-8xl font-bold tracking-tight">{count.toLocaleString()}+</span>
       </div>
       <div className="relative z-10">
         <div className="flex -space-x-2 mb-3">
@@ -428,7 +428,7 @@ function BeforeAfterSection() {
               <span className="text-primary">which startups fit.</span>
             </h2>
             <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              No more eyeballing 500 company pages in a spreadsheet. Match scores every YC company against your resume and ranks them, so the best fits rise to the top.
+              No more eyeballing 3,900 company pages in a spreadsheet. Match scores every YC company against your resume and ranks them, so the best fits rise to the top.
             </p>
           </div>
         </SlideIn>
@@ -555,7 +555,7 @@ export function LandingFeatures() {
                 <span className="text-primary">shortlist in 3 steps.</span>
               </h2>
               <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-                Match parses your resume and scores it against 500+ YC companies on an 8-dimension fit model — so you spend your time on the startups that actually fit, not on hunting.
+                Match parses your resume and scores it against 3,900+ YC companies on an 8-dimension fit model — so you spend your time on the startups that actually fit, not on hunting.
               </p>
             </div>
           </SlideIn>

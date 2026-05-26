@@ -31,7 +31,7 @@ export default function LandingPage() {
                 <span className="font-bold tracking-tight">Match</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-                AI-powered startup job search. Upload your resume and get matched with 500+ YC companies, ranked and graded on real fit.
+                AI-powered startup job search. Upload your resume and get matched with 3,900+ YC companies, ranked and graded on real fit.
               </p>
             </div>
             <div className="md:col-span-7 flex gap-20 text-sm">
