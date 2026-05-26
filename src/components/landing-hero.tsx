@@ -150,7 +150,7 @@ export function LandingHero() {
 
               <HeroReveal delay={0.6} y={20} blur={6}>
                 <p className="mt-8 text-lg text-white/70 leading-relaxed max-w-sm">
-                  AI-powered matching with 500+ YC startups. One tool for scoring, outreach, and interview prep.
+                  AI-powered matching with 500+ YC startups. Upload your resume, get a ranked shortlist of the companies that actually fit.
                 </p>
               </HeroReveal>
 

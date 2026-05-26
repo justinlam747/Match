@@ -7,21 +7,9 @@ import Avatar, { genConfig } from "react-nice-avatar";
 import type { AvatarFullConfig } from "react-nice-avatar";
 import {
   SlideIn,
-  ClipReveal,
   StaggerReveal,
   RevealChild,
 } from "@/components/gsap-reveal";
-import {
-  Settings,
-  MessageSquare,
-  Target,
-  Handshake,
-  BarChart3,
-  Search,
-  PenLine,
-  Send,
-  CheckCircle,
-} from "lucide-react";
 
 const Grainient = lazy(() => import("@/components/grainient"));
 
@@ -390,432 +378,6 @@ function MatchScoreCard() {
   );
 }
 
-/* ── Step 3: Contact Discovery ── */
-function ContactCard() {
-  const contacts = [
-    { role: "CEO", name: "Alex Chen", ai: 0 },
-    { role: "CTO", name: "Sarah Kim", ai: 1 },
-    { role: "VP Eng", name: "James Wu", ai: 2 },
-    { role: "Hiring", name: "Maria Lopez", ai: 3 },
-  ];
-  const [revealed, setRevealed] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const runReveal = useCallback(() => {
-    clearTimers();
-    let i = 0;
-    setRevealed(0);
-    const iv = setInterval(() => {
-      i++;
-      setRevealed(i);
-      if (i >= contacts.length) {
-        clearInterval(iv);
-        const t = setTimeout(() => runReveal(), 4000);
-        timers.current.push(t);
-      }
-    }, 500);
-    timers.current.push(iv as unknown as ReturnType<typeof setTimeout>);
-  }, [contacts.length, clearTimers]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const st = ScrollTrigger.create({
-      trigger: el, start: "top 85%",
-      onEnter: () => { if (!started.current) { started.current = true; runReveal(); } },
-    });
-    return () => { st.kill(); clearTimers(); };
-  }, [runReveal, clearTimers]);
-
-  return (
-    <div ref={ref} className="relative p-8 rounded-2xl h-full flex flex-col overflow-hidden bg-foreground text-background">
-      <div className="relative z-10 text-xs text-white/50 uppercase tracking-widest mb-1">Step 3</div>
-      <h3 className="relative z-10 text-sm font-semibold text-white mb-5">Find decision makers</h3>
-      <div className="relative z-10 flex-1 space-y-3">
-        {contacts.map((c, i) => (
-          <div
-            key={c.name}
-            className="flex items-center gap-3 p-3 bg-white/[0.04] border border-white/[0.06] rounded-xl transition-all duration-500"
-            style={{ opacity: i < revealed ? 1 : 0, transform: i < revealed ? "translateY(0)" : "translateY(12px)" }}
-          >
-            <Avatar className="w-8 h-8 flex-shrink-0" {...avatarConfigs[c.ai]} />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white/80 truncate">{c.name}</div>
-              <div className="text-xs text-white/40">{c.role}</div>
-            </div>
-            <div className="w-2 h-2 bg-green-400/60 rounded-full flex-shrink-0" />
-          </div>
-        ))}
-      </div>
-      <div className="relative z-10 mt-4 text-xs text-white/40">
-        {revealed >= contacts.length ? `${contacts.length} contacts found` : `Searching... ${revealed}/${contacts.length}`}
-      </div>
-    </div>
-  );
-}
-
-/* ── Step 4: Email Drafting ── */
-function EmailCard() {
-  const fullText = "Hi Alex, I noticed Acme is building real-time collab with Next.js \u2014 I've spent 3 years doing exactly that...";
-  const [typed, setTyped] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const runTyping = useCallback(() => {
-    clearTimers();
-    let i = 0;
-    setTyped("");
-    const iv = setInterval(() => {
-      i++;
-      setTyped(fullText.slice(0, i));
-      if (i >= fullText.length) {
-        clearInterval(iv);
-        const t = setTimeout(() => runTyping(), 5000);
-        timers.current.push(t);
-      }
-    }, 30);
-    timers.current.push(iv as unknown as ReturnType<typeof setTimeout>);
-  }, [fullText, clearTimers]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const st = ScrollTrigger.create({
-      trigger: el, start: "top 85%",
-      onEnter: () => { if (!started.current) { started.current = true; runTyping(); } },
-    });
-    return () => { st.kill(); clearTimers(); };
-  }, [runTyping, clearTimers]);
-
-  return (
-    <div ref={ref} className="relative p-8 rounded-2xl h-full flex flex-col overflow-hidden bg-foreground text-background">
-      <div className="relative z-10 flex items-center gap-3 mb-5">
-        <Avatar className="w-8 h-8" {...avatarConfigs[0]} />
-        <div>
-          <div className="text-xs text-white/50 uppercase tracking-widest">Step 4</div>
-          <h3 className="text-sm font-semibold text-white">AI-drafted cold emails</h3>
-        </div>
-      </div>
-      <div className="relative z-10 flex-1 space-y-3">
-        <div className="flex items-center gap-3 text-xs text-white/40">
-          <span>To:</span><span className="text-white/60">founder@acme.com</span>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-white/40">
-          <span>Re:</span><span className="text-white/60">Senior Frontend Engineer</span>
-        </div>
-        <div className="h-px bg-white/10 my-2" />
-        <p className="text-sm text-white/60 leading-relaxed min-h-[80px]">
-          {typed}
-          <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse align-middle" />
-        </p>
-      </div>
-      <div className="relative z-10 mt-4 flex gap-2">
-        <div className="px-4 py-1.5 bg-primary rounded-lg text-xs font-medium text-white">Send</div>
-        <div className="px-4 py-1.5 bg-white/10 rounded-lg text-xs font-medium text-white/60">Edit</div>
-        <div className="px-4 py-1.5 bg-white/10 rounded-lg text-xs font-medium text-white/60">Regenerate</div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Step 5: Send & Track ── */
-function SendQueueCard() {
-  const allStatuses = [
-    { company: "Acme Corp", status: "replied", ai: 4 },
-    { company: "Quantum AI", status: "opened", ai: 5 },
-    { company: "NovaPay", status: "delivered", ai: 8 },
-    { company: "CloudBase", status: "queued", ai: 9 },
-  ];
-  const statusOrder = ["queued", "delivered", "opened", "replied"];
-  const colors: Record<string, string> = { delivered: "bg-blue-400", opened: "bg-yellow-400", replied: "bg-green-400", queued: "bg-white/20" };
-  const [statuses, setStatuses] = useState(allStatuses.map((s) => ({ ...s, current: "queued" })));
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const runCycle = useCallback(function runCycle() {
-    clearTimers();
-    let step = 0;
-    const maxSteps = allStatuses.length * statusOrder.length;
-    const iv = setInterval(() => {
-      step++;
-      setStatuses((prev) =>
-        prev.map((s, i) => {
-          const targetIdx = statusOrder.indexOf(allStatuses[i].status);
-          const currentIdx = Math.min(Math.floor((step - i * 3) / 2), targetIdx);
-          return { ...s, current: currentIdx >= 0 ? statusOrder[currentIdx] : "queued" };
-        })
-      );
-      if (step >= maxSteps + 8) {
-        clearInterval(iv);
-        const t1 = setTimeout(() => {
-          setStatuses(allStatuses.map((s) => ({ ...s, current: "queued" })));
-          const t2 = setTimeout(() => runCycle(), 800);
-          timers.current.push(t2);
-        }, 4000);
-        timers.current.push(t1);
-      }
-    }, 600);
-    timers.current.push(iv as unknown as ReturnType<typeof setTimeout>);
-  }, [clearTimers]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const st = ScrollTrigger.create({
-      trigger: el, start: "top 85%",
-      onEnter: () => { if (!started.current) { started.current = true; runCycle(); } },
-    });
-    return () => { st.kill(); clearTimers(); };
-  }, [runCycle, clearTimers]);
-
-  return (
-    <div ref={ref} className="relative p-8 text-white rounded-2xl h-full flex flex-col overflow-hidden">
-      <GrainBg preset="orangeEmber" />
-      <div className="relative z-10 text-xs text-white/60 uppercase tracking-widest mb-1">Step 5</div>
-      <h3 className="relative z-10 text-sm font-semibold mb-5">Send &amp; track every email</h3>
-      <div className="relative z-10 flex-1 space-y-3">
-        {statuses.map((s) => (
-          <div key={s.company} className="flex items-center gap-3 transition-all duration-500">
-            <Avatar className="w-6 h-6 flex-shrink-0" {...avatarConfigs[s.ai]} />
-            <div className={`w-2 h-2 ${colors[s.current]} rounded-full ${s.current !== "queued" ? "animate-pulse" : ""} flex-shrink-0 transition-colors duration-500`} />
-            <span className="text-sm flex-1 truncate">{s.company}</span>
-            <span className="text-xs text-white/50 capitalize transition-all duration-500">{s.current}</span>
-          </div>
-        ))}
-      </div>
-      <div className="relative z-10 mt-4 h-px bg-white/20" />
-      <div className="relative z-10 mt-3 flex justify-between text-xs text-white/50">
-        <span>{statuses.filter((s) => s.current !== "queued").length} sent</span>
-        <span>{statuses.filter((s) => s.current === "replied").length} replies</span>
-      </div>
-    </div>
-  );
-}
-
-/* ── Step 6: Interview Prep ── */
-function InterviewPrepCard() {
-  const phases = [
-    { name: "Technical", Icon: Settings, questions: 5 },
-    { name: "Behavioral", Icon: MessageSquare, questions: 3 },
-    { name: "Company", Icon: Target, questions: 4 },
-    { name: "Culture", Icon: Handshake, questions: 3 },
-  ];
-  const [activePhase, setActivePhase] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-
-  const runCycle = useCallback(function runCycle() {
-    let phase = 0;
-    let cancelled = false;
-    setActivePhase(0);
-    setShowAnswer(false);
-
-    const advance = () => {
-      if (cancelled) return;
-      // Show answer for current phase
-      setTimeout(() => {
-        if (cancelled) return;
-        setShowAnswer(true);
-
-        // Move to next phase
-        setTimeout(() => {
-          if (cancelled) return;
-          phase++;
-          if (phase >= phases.length) {
-            // Pause then restart
-            setTimeout(() => { if (!cancelled) runCycle(); }, 3000);
-            return;
-          }
-          setActivePhase(phase);
-          setShowAnswer(false);
-          // Wait then advance again
-          setTimeout(advance, 800);
-        }, 1500);
-      }, 1200);
-    };
-
-    setTimeout(advance, 800);
-
-    return () => { cancelled = true; };
-  }, [phases.length]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let cleanup: (() => void) | undefined;
-    const st = ScrollTrigger.create({
-      trigger: el, start: "top 85%",
-      onEnter: () => {
-        if (!started.current) {
-          started.current = true;
-          cleanup = runCycle();
-        }
-      },
-    });
-    return () => { st.kill(); cleanup?.(); };
-  }, [runCycle]);
-
-  const sampleQuestions = [
-    "How would you design a real-time data pipeline at our scale?",
-    "Tell me about a time you shipped under tight deadlines.",
-    "What specifically about our product excited you?",
-    "How do you handle disagreements with your tech lead?",
-  ];
-
-  return (
-    <div ref={ref} className="relative p-8 rounded-2xl h-full flex flex-col overflow-hidden bg-foreground text-background">
-      <div className="relative z-10 flex items-center gap-3 mb-5">
-        <Avatar className="w-8 h-8" {...avatarConfigs[9]} />
-        <div>
-          <div className="text-xs text-white/50 uppercase tracking-widest">Step 6</div>
-          <h3 className="text-sm font-semibold text-white">Interview prep</h3>
-        </div>
-      </div>
-      <div className="relative z-10 flex-1 space-y-3">
-        <div className="flex gap-2 mb-4">
-          {phases.map((p, i) => (
-            <div
-              key={p.name}
-              className={`flex-1 p-2 rounded-lg border transition-all duration-500 flex flex-col items-center ${
-                i === activePhase
-                  ? "bg-primary/20 border-primary/40"
-                  : "bg-white/[0.03] border-white/[0.06]"
-              }`}
-            >
-              <p.Icon className={`w-5 h-5 ${i === activePhase ? "text-primary" : "text-white/30"} transition-colors duration-500`} />
-              <div className={`text-[10px] mt-1 ${i === activePhase ? "text-white/80" : "text-white/30"}`}>
-                {p.name}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="p-4 bg-white/[0.04] border border-white/[0.06] rounded-xl min-h-[90px] flex flex-col justify-between">
-          <p className="text-sm text-white/70 leading-relaxed">
-            {sampleQuestions[activePhase]}
-          </p>
-          <div className={`mt-3 text-xs transition-all duration-500 ${showAnswer ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-            <div className="flex items-center gap-2 text-primary">
-              <span className="w-1 h-1 bg-primary rounded-full" />
-              AI-generated answer + coaching tip
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="relative z-10 mt-4 text-xs text-white/40">
-        {phases[activePhase].questions} questions in {phases[activePhase].name.toLowerCase()} phase
-      </div>
-    </div>
-  );
-}
-
-/* ── Autopilot: Agent Pipeline ── */
-function AgentPipelineCard() {
-  const steps = [
-    { name: "Score matches", Icon: BarChart3, status: "idle" },
-    { name: "Find contacts", Icon: Search, status: "idle" },
-    { name: "Draft emails", Icon: PenLine, status: "idle" },
-    { name: "Send outreach", Icon: Send, status: "idle" },
-    { name: "Track replies", Icon: CheckCircle, status: "idle" },
-  ];
-  const [activeSteps, setActiveSteps] = useState(steps.map((s) => ({ ...s })));
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const runCycle = useCallback(() => {
-    clearTimers();
-    let current = 0;
-    setActiveSteps(steps.map((s) => ({ ...s, status: "idle" })));
-
-    const iv = setInterval(() => {
-      setActiveSteps((prev) =>
-        prev.map((s, i) => {
-          if (i < current) return { ...s, status: "done" };
-          if (i === current) return { ...s, status: "running" };
-          return { ...s, status: "idle" };
-        })
-      );
-      current++;
-      if (current > steps.length) {
-        clearInterval(iv);
-        setActiveSteps(steps.map((s) => ({ ...s, status: "done" })));
-        const t = setTimeout(() => runCycle(), 4000);
-        timers.current.push(t);
-      }
-    }, 1000);
-    timers.current.push(iv as unknown as ReturnType<typeof setTimeout>);
-  }, [clearTimers]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const st = ScrollTrigger.create({
-      trigger: el, start: "top 85%",
-      onEnter: () => { if (!started.current) { started.current = true; runCycle(); } },
-    });
-    return () => { st.kill(); clearTimers(); };
-  }, [runCycle, clearTimers]);
-
-  const statusColors: Record<string, string> = {
-    idle: "bg-white/10",
-    running: "bg-primary animate-pulse",
-    done: "bg-green-400",
-  };
-
-  return (
-    <div ref={ref} className="relative p-8 text-white rounded-2xl h-full flex flex-col overflow-hidden">
-      <GrainBg preset="darkFire" />
-      <div className="relative z-10 text-xs text-white/60 uppercase tracking-widest mb-1">Autopilot</div>
-      <h3 className="relative z-10 text-sm font-semibold mb-2">Automated pipeline</h3>
-      <p className="relative z-10 text-xs text-white/40 mb-5">Runs daily at 8:30 AM &mdash; scores new companies, finds contacts, drafts emails</p>
-      <div className="relative z-10 flex-1 space-y-2.5">
-        {activeSteps.map((s) => {
-          const StepIcon = steps.find((st) => st.name === s.name)?.Icon ?? BarChart3;
-          return (
-            <div key={s.name} className="flex items-center gap-3 transition-all duration-500">
-              <div className={`w-2.5 h-2.5 rounded-full ${statusColors[s.status]} transition-all duration-500 flex-shrink-0`} />
-              <StepIcon className={`w-4 h-4 flex-shrink-0 transition-colors duration-300 ${s.status === "idle" ? "text-white/30" : "text-primary"}`} />
-              <span className={`text-sm flex-1 transition-all duration-300 ${s.status === "idle" ? "text-white/40" : "text-white/90"}`}>
-                {s.name}
-              </span>
-              <span className="text-xs text-white/30 capitalize">{s.status === "done" ? "\u2713" : s.status === "running" ? "..." : ""}</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="relative z-10 mt-4 h-px bg-white/20" />
-      <div className="relative z-10 mt-3 text-xs text-white/50">
-        {activeSteps.filter((s) => s.status === "done").length}/{activeSteps.length} steps complete
-      </div>
-    </div>
-  );
-}
-
 /* ═══════════════════════════════════════════════
    Before / After — visual workspace transformation
    ═══════════════════════════════════════════════ */
@@ -896,12 +458,12 @@ function BeforeAfterSection() {
               Before &amp; After
             </div>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]">
-              Replace 6 tabs with
+              Stop guessing
               <br />
-              <span className="text-primary">one platform.</span>
+              <span className="text-primary">which startups fit.</span>
             </h2>
             <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              No more spreadsheets, email finders, job boards, and LinkedIn tabs. Match handles your entire startup job search pipeline.
+              No more eyeballing 500 company pages in a spreadsheet. Match scores every YC company against your resume and ranks them, so the best fits rise to the top.
             </p>
           </div>
         </SlideIn>
@@ -977,10 +539,10 @@ function BeforeAfterSection() {
               </div>
               <div className="space-y-3 mt-10">
                 {[
-                  { label: "Match score", value: "87/100", bar: 87, avatar: 0 },
-                  { label: "Contacts found", value: "4 people", bar: 100, avatar: 1 },
-                  { label: "Email drafted", value: "Ready to send", bar: 65, avatar: 2 },
-                  { label: "Interview prep", value: "20 Qs generated", bar: 92, avatar: 3 },
+                  { label: "Overall match", value: "87/100", bar: 87, avatar: 0 },
+                  { label: "Grade", value: "A", bar: 90, avatar: 1 },
+                  { label: "Tech alignment", value: "Strong", bar: 82, avatar: 2 },
+                  { label: "Red-flag check", value: "Clear", bar: 95, avatar: 3 },
                 ].map((row, i) => (
                   <div
                     key={row.label}
@@ -1003,15 +565,8 @@ function BeforeAfterSection() {
                   </div>
                 ))}
                 <div data-clean-row className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-1.5">
-                      {avatarConfigs.slice(0, 3).map((c, i) => (
-                        <Avatar key={i} className="w-5 h-5 border border-primary/30" {...c} />
-                      ))}
-                    </div>
-                    <span className="text-xs text-white/60">3 emails queued</span>
-                  </div>
-                  <div className="px-3 py-1 bg-primary rounded-lg text-xs font-medium text-white">Send all</div>
+                  <span className="text-xs text-white/60">8-dimension breakdown + explanation</span>
+                  <div className="px-3 py-1 bg-primary rounded-lg text-xs font-medium text-white">View match</div>
                 </div>
               </div>
               <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/30">
@@ -1050,34 +605,24 @@ export function LandingFeatures() {
           <SlideIn direction="left" distance={80}>
             <div className="max-w-3xl mb-20">
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1]">
-                Resume to interview
+                Resume to ranked
                 <br />
-                <span className="text-primary">in 6 steps.</span>
+                <span className="text-primary">shortlist in 3 steps.</span>
               </h2>
               <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-                Match handles your entire startup job search pipeline: parse your resume, score 500+ YC companies, find the right contacts, draft personalized emails, and prep you for interviews.
+                Match parses your resume and scores it against 500+ YC companies on an 8-dimension fit model — so you spend your time on the startups that actually fit, not on hunting.
               </p>
             </div>
           </SlideIn>
 
-          {/* Bento grid — steps flow in reading order: 1 → 2 → 3 → 4 → 5 → 6 */}
+          {/* Bento grid — the three real steps: upload, the YC pool, scored matches */}
           <StaggerReveal
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4"
             stagger={0.08}
           >
-            {/* Row 1: Step 1 | 500+ | Step 2 */}
             <RevealChild className="lg:col-span-4 h-[360px]"><ResumeCard /></RevealChild>
             <RevealChild className="lg:col-span-4 h-[360px]"><CounterCard /></RevealChild>
             <RevealChild className="lg:col-span-4 h-[360px]"><MatchScoreCard /></RevealChild>
-
-            {/* Row 2: Step 3 | Step 4 (wide) */}
-            <RevealChild className="lg:col-span-5 h-[380px]"><ContactCard /></RevealChild>
-            <RevealChild className="lg:col-span-7 h-[380px]"><EmailCard /></RevealChild>
-
-            {/* Row 3: Step 5 | Step 6 | Autopilot */}
-            <RevealChild className="lg:col-span-4 h-[380px]"><SendQueueCard /></RevealChild>
-            <RevealChild className="lg:col-span-4 h-[380px]"><InterviewPrepCard /></RevealChild>
-            <RevealChild className="lg:col-span-4 h-[380px]"><AgentPipelineCard /></RevealChild>
           </StaggerReveal>
         </div>
       </section>
