@@ -15,6 +15,50 @@ import { logLlmCall } from "./log";
 
 export type ModelTier = "fast" | "smart";
 
+/**
+ * Maps an AI/OpenAI error to a user-facing HTTP status + message. Returns null
+ * for errors we don't recognize, so callers can apply their own fallback.
+ *
+ * Quota / billing / auth failures are the user's own account issue (especially
+ * with BYOK keys), so we surface them verbatim rather than hiding behind a 500.
+ */
+export function describeAiError(
+  err: unknown
+): { status: number; message: string } | null {
+  // Thrown by resolveKey() before any network call.
+  if (err instanceof Error && err.message.startsWith("No OpenAI API key")) {
+    return { status: 400, message: err.message };
+  }
+
+  if (err instanceof OpenAI.APIError) {
+    const code = err.code;
+    if (err.status === 429 && code === "insufficient_quota") {
+      return {
+        status: 429,
+        message:
+          "OpenAI quota exceeded for the API key in use. Check your OpenAI plan and billing, or add a key with available quota in Settings.",
+      };
+    }
+    if (err.status === 429) {
+      return {
+        status: 429,
+        message:
+          "OpenAI is rate-limiting requests right now. Wait a moment and try again.",
+      };
+    }
+    if (err.status === 401) {
+      return {
+        status: 401,
+        message:
+          "The OpenAI API key is invalid or revoked. Update it in Settings.",
+      };
+    }
+    return { status: 502, message: `OpenAI error: ${err.message}` };
+  }
+
+  return null;
+}
+
 const MODELS = {
   fast: "gpt-4o-mini",
   smart: "gpt-4o",
