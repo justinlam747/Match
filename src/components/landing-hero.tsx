@@ -128,10 +128,10 @@ export function LandingHero() {
       </div>
 
       <div className="relative z-[2] h-full">
-        <div className="max-w-[1500px] mx-auto h-full px-8 md:px-12 lg:px-16">
+        <div className="max-w-[1400px] mx-auto h-full px-10 md:px-16 lg:px-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             {/* Left — Hero text */}
-            <div className="lg:col-span-4 lg:col-start-2 flex flex-col justify-center pt-32 pb-16">
+            <div className="lg:col-span-4 flex flex-col justify-center pt-32 pb-16">
               <HeroSlide direction="left" delay={0.15} distance={80}>
                 <h1 className="text-[clamp(2.8rem,5.5vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.9] text-white">
                   Find work
@@ -188,7 +188,7 @@ export function LandingHero() {
             </div>
 
             {/* Right — 3 staggered vertical carousels filling full height */}
-            <div className="lg:col-span-7 hidden lg:grid grid-cols-4 gap-3 pt-20 h-screen ml-8">
+            <div className="lg:col-span-8 hidden lg:grid grid-cols-4 gap-3 pt-20 h-screen ml-8">
               <HeroReveal delay={0.2} y={0} blur={0}>
                 <VerticalCarousel items={col1} duration={28} className="!h-[calc(100vh-80px)]" />
               </HeroReveal>
