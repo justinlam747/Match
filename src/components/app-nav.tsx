@@ -45,7 +45,7 @@ export function AppNav({ userName, userAvatar, userEmail }: AppNavProps) {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm">
       <div className="px-6 lg:px-10 h-14 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center">
-          <span className="font-bold tracking-tight">Match</span>
+          <span className="font-normal tracking-tight">Match</span>
         </Link>
 
         <DropdownMenu>
