@@ -25,7 +25,7 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <CompanyLogo logoUrl={match.logoUrl} companyName={match.companyName} size="md" />
@@ -45,7 +45,7 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
             </div>
           </div>
           {(match.longDescription || match.description) && (
-            <DialogDescription className="text-sm leading-relaxed mt-2">
+            <DialogDescription className="text-sm leading-relaxed mt-2 break-words">
               {match.longDescription || match.description}
             </DialogDescription>
           )}
@@ -68,7 +68,7 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
             <h4 className="text-xs font-medium text-muted-foreground mb-1">
               Why this matches
             </h4>
-            <p className="text-sm leading-relaxed">{match.explanation}</p>
+            <p className="text-sm leading-relaxed break-words">{match.explanation}</p>
           </div>
 
           {/* Industries */}
