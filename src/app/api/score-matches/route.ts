@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
       SELECT
         id, name, slug, batch, description, one_liner, long_description,
         industries, tags, tech_stack, stage, status, team_size,
-        website, yc_url, logo_url, location, is_hiring, is_top_company,
+        website, yc_url, logo_url, location, is_hiring,
         hiring_signals, archetype,
         1 - (embedding <=> ${vectorStr}::vector) as similarity
       FROM yc_companies
@@ -290,7 +290,6 @@ export async function POST(request: NextRequest) {
       logo_url: string | null;
       location: string | null;
       is_hiring: boolean;
-      is_top_company: boolean;
       hiring_signals: { has_careers_page?: boolean; recent_job_posts?: number; eng_roles_open?: boolean } | null;
       archetype: RoleArchetype | null;
       similarity: number;
@@ -415,7 +414,10 @@ export async function POST(request: NextRequest) {
       topMatches: results.slice(0, 20),
     });
   } catch (error) {
-    console.error("Scoring error:", error);
+    // Log the underlying DB/cause message only — a failed query's full error
+    // includes its params, which here are the 1,536-dim embedding vectors.
+    const cause = (error as { cause?: { message?: string } })?.cause;
+    console.error("Scoring error:", cause?.message ?? (error instanceof Error ? error.message : String(error)));
 
     const aiError = describeAiError(error);
     if (aiError) {
