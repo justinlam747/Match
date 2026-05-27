@@ -98,7 +98,6 @@ async function importCompanies() {
         logoUrl: c.small_logo_thumb_url || null,
         location: c.all_locations || null,
         isHiring: c.isHiring ?? false,
-        isTopCompany: c.top_company ?? false,
       };
 
       if (existing) {
