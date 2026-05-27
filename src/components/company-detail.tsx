@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -18,6 +19,49 @@ interface CompanyDetailProps {
   match: MatchData | null;
   open: boolean;
   onClose: () => void;
+}
+
+// YC long_descriptions are free-form text with raw URLs and "*" bullet markers
+// dumped inline. Render URLs as compact links and break "*" items onto new lines.
+// Only inline nodes (<a>, <br>) so this stays valid inside the <p> DialogDescription.
+const URL_OR_BULLET = /(https?:\/\/[^\s]+|\s\*\s)/g;
+
+function linkLabel(url: string): string {
+  try {
+    const u = new URL(url);
+    const seg = u.pathname.split("/").filter(Boolean).pop();
+    return seg ? decodeURIComponent(seg).replace(/[-_]+/g, " ") : u.hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function renderDescription(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let key = 0;
+  for (const part of text.split(URL_OR_BULLET)) {
+    if (!part) continue;
+    if (/^https?:\/\//.test(part)) {
+      const url = part.replace(/[.,);]+$/, "");
+      nodes.push(
+        <a
+          key={key++}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline underline-offset-2 hover:text-primary/80 break-words"
+        >
+          {linkLabel(url)}
+        </a>
+      );
+    } else if (/^\s\*\s$/.test(part)) {
+      nodes.push(<br key={key++} />);
+      nodes.push("• ");
+    } else {
+      nodes.push(part);
+    }
+  }
+  return nodes;
 }
 
 export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
@@ -46,7 +90,7 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
           </div>
           {(match.longDescription || match.description) && (
             <DialogDescription className="text-sm leading-relaxed mt-2 break-words">
-              {match.longDescription || match.description}
+              {renderDescription(match.longDescription || match.description || "")}
             </DialogDescription>
           )}
         </DialogHeader>
