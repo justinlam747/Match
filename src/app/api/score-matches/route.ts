@@ -296,9 +296,12 @@ export async function POST(request: NextRequest) {
     }>;
 
     if (candidates.length === 0) {
+      console.error(
+        "score-matches: yc_companies has no embedded rows — run `npm run populate` to import and embed companies"
+      );
       return NextResponse.json(
-        { error: "No embedded companies found. Run: npm run populate" },
-        { status: 400 }
+        { error: "Matching isn't available yet — the company catalog is still being set up. Please try again later." },
+        { status: 503 }
       );
     }
 
