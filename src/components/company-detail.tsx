@@ -98,7 +98,7 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <CompanyLogo logoUrl={match.logoUrl} companyName={match.companyName} size="md" />
