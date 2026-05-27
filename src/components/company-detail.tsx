@@ -22,10 +22,8 @@ interface CompanyDetailProps {
 }
 
 // YC long_descriptions are free-form text with raw URLs and "*" bullet markers
-// dumped inline. Render URLs as compact links and break "*" items onto new lines.
-// Only inline nodes (<a>, <br>) so this stays valid inside the <p> DialogDescription.
-const URL_OR_BULLET = /(https?:\/\/[^\s]+|\s\*\s)/g;
-
+// dumped inline. Render them as a lead paragraph + a spaced bulleted list of
+// compact links + a trailing paragraph for any prose after the list.
 function linkLabel(url: string): string {
   try {
     const u = new URL(url);
@@ -36,10 +34,11 @@ function linkLabel(url: string): string {
   }
 }
 
-function renderDescription(text: string): ReactNode[] {
+// Turn inline URLs into compact clickable links; leave other text as-is.
+function linkify(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   let key = 0;
-  for (const part of text.split(URL_OR_BULLET)) {
+  for (const part of text.split(/(https?:\/\/[^\s]+)/g)) {
     if (!part) continue;
     if (/^https?:\/\//.test(part)) {
       const url = part.replace(/[.,);]+$/, "");
@@ -54,14 +53,44 @@ function renderDescription(text: string): ReactNode[] {
           {linkLabel(url)}
         </a>
       );
-    } else if (/^\s\*\s$/.test(part)) {
-      nodes.push(<br key={key++} />);
-      nodes.push("• ");
     } else {
       nodes.push(part);
     }
   }
   return nodes;
+}
+
+function CompanyDescription({ text, className }: { text: string; className?: string }) {
+  // Split on the "*" bullet markers. First chunk is lead prose; the rest are
+  // bullet items (each a URL), with any prose after a link pulled into a trailing paragraph.
+  const segments = text.split(/\s*\*\s+/).map((s) => s.trim()).filter(Boolean);
+  const lead = segments[0] ?? "";
+  const bullets: string[] = [];
+  let trailing = "";
+
+  for (const seg of segments.slice(1)) {
+    const m = seg.match(/^(https?:\/\/\S+)(\s+[\s\S]+)?$/);
+    if (m) {
+      bullets.push(m[1]);
+      if (m[2]?.trim()) trailing += (trailing ? " " : "") + m[2].trim();
+    } else {
+      trailing += (trailing ? " " : "") + seg;
+    }
+  }
+
+  return (
+    <div className={className}>
+      {lead && <p className="break-words">{linkify(lead)}</p>}
+      {bullets.length > 0 && (
+        <ul className="list-disc pl-5 space-y-2 mt-3">
+          {bullets.map((b, i) => (
+            <li key={i} className="break-words">{linkify(b)}</li>
+          ))}
+        </ul>
+      )}
+      {trailing && <p className="break-words mt-3">{linkify(trailing)}</p>}
+    </div>
+  );
 }
 
 export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
@@ -89,9 +118,15 @@ export function CompanyDetail({ match, open, onClose }: CompanyDetailProps) {
             </div>
           </div>
           {(match.longDescription || match.description) && (
-            <DialogDescription className="text-sm leading-relaxed mt-2 break-words">
-              {renderDescription(match.longDescription || match.description || "")}
-            </DialogDescription>
+            <>
+              <DialogDescription className="sr-only">
+                {match.longDescription || match.description}
+              </DialogDescription>
+              <CompanyDescription
+                text={match.longDescription || match.description || ""}
+                className="text-sm leading-relaxed mt-2 text-muted-foreground"
+              />
+            </>
           )}
         </DialogHeader>
 
