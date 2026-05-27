@@ -16,7 +16,9 @@ export function requireSupabaseConfig() {
 
   if (!config.url || !config.key) {
     throw new Error(
-      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY."
+      process.env.NODE_ENV !== "production"
+        ? "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY."
+        : "Authentication is not available right now."
     );
   }
 

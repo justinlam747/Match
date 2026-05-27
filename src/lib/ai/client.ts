@@ -24,9 +24,9 @@ export type ModelTier = "fast" | "smart";
 export function describeAiError(
   err: unknown
 ): { status: number; message: string } | null {
-  // Thrown by resolveKey() before any network call.
+  // Thrown by resolveKey()/getOpenAIKey() before any network call.
   if (err instanceof Error && err.message.startsWith("No OpenAI API key")) {
-    return { status: 400, message: err.message };
+    return { status: 400, message: "AI features aren't set up yet. Add your OpenAI key in Settings." };
   }
 
   if (err instanceof OpenAI.APIError) {
@@ -52,7 +52,7 @@ export function describeAiError(
           "The OpenAI API key is invalid or revoked. Update it in Settings.",
       };
     }
-    return { status: 502, message: `OpenAI error: ${err.message}` };
+    return { status: 502, message: "Something went wrong reaching OpenAI. Please try again in a moment." };
   }
 
   return null;

@@ -18,7 +18,8 @@ async function getOpenAIKey(userId?: string): Promise<string> {
 
   if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY;
 
-  throw new Error("OpenAI API key required for embeddings. Add one in Settings or set OPENAI_API_KEY.");
+  // Prefixed "No OpenAI API key" so describeAiError() maps it to user-safe copy.
+  throw new Error("No OpenAI API key configured for embeddings.");
 }
 
 export async function generateEmbedding(
