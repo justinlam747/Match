@@ -89,7 +89,9 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error("Failed to load matches:", error);
+    // Log only the underlying cause message; the full query error carries its params.
+    const cause = (error as { cause?: { message?: string } })?.cause;
+    console.error("Failed to load matches:", cause?.message ?? (error instanceof Error ? error.message : String(error)));
     return NextResponse.json(
       { error: "Failed to load matches" },
       { status: 500 }
