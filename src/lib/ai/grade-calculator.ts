@@ -3,15 +3,16 @@ import type { Grade } from "@/lib/db/schema";
 
 export type { Grade };
 
-// Half-open intervals: a score in [min, maxExclusive) maps to that grade.
-// F is the catch-all for anything below 2.0 (including negatives and NaN).
+// Half-open intervals (0–5 scale): a score in [min, maxExclusive) maps to that grade.
+// Redistributed to a more generous curve so strong matches reach A/B instead of
+// topping out at C — A is 70%+ overall, then 10-point bands down to E.
 export const GRADE_BANDS: ReadonlyArray<{ grade: Grade; min: number; maxExclusive: number }> = [
-  { grade: "A", min: 4.5, maxExclusive: Number.POSITIVE_INFINITY },
-  { grade: "B", min: 4.0, maxExclusive: 4.5 },
-  { grade: "C", min: 3.5, maxExclusive: 4.0 },
-  { grade: "D", min: 3.0, maxExclusive: 3.5 },
-  { grade: "E", min: 2.0, maxExclusive: 3.0 },
-  { grade: "F", min: Number.NEGATIVE_INFINITY, maxExclusive: 2.0 },
+  { grade: "A", min: 3.5, maxExclusive: Number.POSITIVE_INFINITY },
+  { grade: "B", min: 3.0, maxExclusive: 3.5 },
+  { grade: "C", min: 2.5, maxExclusive: 3.0 },
+  { grade: "D", min: 2.0, maxExclusive: 2.5 },
+  { grade: "E", min: 1.25, maxExclusive: 2.0 },
+  { grade: "F", min: Number.NEGATIVE_INFINITY, maxExclusive: 1.25 },
 ] as const;
 
 export function normalizeScore(overall: number, maxOverall: number): number {
@@ -27,11 +28,11 @@ export function normalizeScore(overall: number, maxOverall: number): number {
 
 export function calculateGrade(normalized0to5: number): Grade {
   if (!Number.isFinite(normalized0to5)) return "F";
-  if (normalized0to5 >= 4.5) return "A";
-  if (normalized0to5 >= 4.0) return "B";
-  if (normalized0to5 >= 3.5) return "C";
-  if (normalized0to5 >= 3.0) return "D";
-  if (normalized0to5 >= 2.0) return "E";
+  if (normalized0to5 >= 3.5) return "A";
+  if (normalized0to5 >= 3.0) return "B";
+  if (normalized0to5 >= 2.5) return "C";
+  if (normalized0to5 >= 2.0) return "D";
+  if (normalized0to5 >= 1.25) return "E";
   return "F";
 }
 

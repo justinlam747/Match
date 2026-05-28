@@ -329,6 +329,32 @@ function computeOverall(scores: ScoreOutput): number {
   return Math.max(0, Math.min(100, Math.round(raw)));
 }
 
+/**
+ * Basis for the LETTER GRADE only — excludes the hiring dimension so a company
+ * that isn't actively hiring isn't dragged down a grade. The remaining positive
+ * weights are renormalized to 100 so the basis stays on a true 0–100 scale.
+ * The displayed Match score (computeOverall) still includes hiring.
+ */
+function computeGradeBasis(scores: ScoreOutput): number {
+  const positiveWeight =
+    SCORE_WEIGHTS.industry +
+    SCORE_WEIGHTS.northStar +
+    SCORE_WEIGHTS.tech +
+    SCORE_WEIGHTS.compensation +
+    SCORE_WEIGHTS.culture +
+    SCORE_WEIGHTS.stage;
+  const positive =
+    SCORE_WEIGHTS.industry * (scores.industryScore / 25) +
+    SCORE_WEIGHTS.northStar * (scores.northStarScore / 25) +
+    SCORE_WEIGHTS.tech * (scores.techScore / 25) +
+    SCORE_WEIGHTS.compensation * (scores.compensationScore / 25) +
+    SCORE_WEIGHTS.culture * (scores.cultureScore / 25) +
+    SCORE_WEIGHTS.stage * (scores.stageScore / 25);
+  const penalty = Math.abs(SCORE_WEIGHTS.redFlag) * (scores.redFlagScore / 25);
+  const raw = (positive / positiveWeight) * 100 - penalty;
+  return Math.max(0, Math.min(100, raw));
+}
+
 /* ── Main scoring function with fallback chain ── */
 
 export async function scoreMatch(
@@ -371,7 +397,8 @@ export async function scoreMatch(
   }
 
   const overallScore = computeOverall(scores);
-  const grade = gradeFromOverall(overallScore, 100);
+  // Grade excludes hiring (see computeGradeBasis) and uses the redistributed curve.
+  const grade = gradeFromOverall(computeGradeBasis(scores), 100);
   const recommendation = gradeRecommendation(grade);
   const gradeBreakdown: GradeBreakdown = {
     tech: gradeFromDimension(scores.techScore),
