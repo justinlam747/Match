@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import type { GitHubProfileData } from "@/lib/db/schema";
 
 interface Doc {
   id: string;
@@ -12,7 +13,80 @@ interface Doc {
   title: string;
   sourceUrl: string | null;
   rawText: string | null;
+  metadata?: GitHubProfileData | null;
   createdAt: string;
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+function GitHubCard({ data }: { data: GitHubProfileData }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge className="bg-primary/10 text-primary border-0 text-[11px]">{data.pace.label}</Badge>
+        <span className="text-xs text-muted-foreground">
+          {data.totalStars}★ · {data.publicRepos} repos · {data.followers} followers
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed">{data.pace.detail}</p>
+
+      <div className="text-xs text-muted-foreground">
+        {data.activity.activeDays30} active days · {data.activity.pushEvents30} pushes in the last 30 days
+        {data.activity.lastActive && ` · last push ${timeAgo(data.activity.lastActive)}`}
+      </div>
+
+      {data.languages.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {data.languages.slice(0, 8).map((l) => (
+            <Badge key={l} variant="outline" className="text-[10px] font-normal">{l}</Badge>
+          ))}
+        </div>
+      )}
+
+      {data.topRepos.length > 0 && (
+        <div className="space-y-1">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Top repos</span>
+          {data.topRepos.map((r) => (
+            <a
+              key={r.name}
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="block rounded p-1.5 -mx-1.5 hover:bg-muted/50"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium truncate">{r.name}</span>
+                <span className="text-[11px] text-muted-foreground shrink-0">
+                  {r.stars > 0 ? `${r.stars}★` : ""}{r.language ? ` · ${r.language}` : ""}
+                </span>
+              </div>
+              {r.description && (
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{r.description}</p>
+              )}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {data.readmeCount > 0 && (
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <svg className="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          {data.readmeCount} README{data.readmeCount !== 1 ? "s" : ""} included in matching data
+        </div>
+      )}
+    </div>
+  );
 }
 
 function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -115,7 +189,9 @@ function DocEntry({ doc, label, onDelete }: { doc: Doc; label: string; onDelete:
 
       {expanded && (
         <div className="border-t px-3 py-3 space-y-2">
-          {doc.rawText ? (
+          {doc.type === "github" && doc.metadata ? (
+            <GitHubCard data={doc.metadata} />
+          ) : doc.rawText ? (
             <>
               {/* Show profile info (strip README content from display) */}
               <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words leading-relaxed max-h-64 overflow-y-auto font-sans">
@@ -242,11 +318,16 @@ export function DocumentManager({ onDocumentsChange }: { onDocumentsChange?: () 
             <GitHubIcon className="w-5 h-5 text-white" />
           </div>
           {hasType("github") ? (
-            <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 flex-wrap">
               <span className="text-sm text-muted-foreground">
                 {docs.find((d) => d.type === "github")?.title}
               </span>
               <Badge variant="outline" className="text-[10px] text-green-600">Connected</Badge>
+              {docs.find((d) => d.type === "github")?.metadata?.pace.label && (
+                <Badge className="bg-primary/10 text-primary border-0 text-[10px]">
+                  {docs.find((d) => d.type === "github")?.metadata?.pace.label}
+                </Badge>
+              )}
             </div>
           ) : (
             <div className="flex-1 flex items-center gap-2">
