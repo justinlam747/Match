@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import type { GitHubProfileData } from "@/lib/db/schema";
+import type { GitHubProfileData, PortfolioMetadata } from "@/lib/db/schema";
 
 interface Doc {
   id: string;
@@ -13,8 +13,29 @@ interface Doc {
   title: string;
   sourceUrl: string | null;
   rawText: string | null;
-  metadata?: GitHubProfileData | null;
+  metadata?: GitHubProfileData | PortfolioMetadata | null;
   createdAt: string;
+}
+
+function PortfolioCard({ data }: { data: PortfolioMetadata }) {
+  return (
+    <div className="space-y-2">
+      {data.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={data.image}
+          alt={data.title || "preview"}
+          className="w-full max-h-40 object-cover rounded-md border"
+          loading="lazy"
+        />
+      )}
+      {data.title && <div className="text-sm font-medium">{data.title}</div>}
+      {data.siteName && <div className="text-[11px] text-muted-foreground">{data.siteName}</div>}
+      {data.description && (
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">{data.description}</p>
+      )}
+    </div>
+  );
 }
 
 function timeAgo(iso: string): string {
@@ -190,7 +211,9 @@ function DocEntry({ doc, label, onDelete }: { doc: Doc; label: string; onDelete:
       {expanded && (
         <div className="border-t px-3 py-3 space-y-2">
           {doc.type === "github" && doc.metadata ? (
-            <GitHubCard data={doc.metadata} />
+            <GitHubCard data={doc.metadata as GitHubProfileData} />
+          ) : (doc.type === "portfolio" || doc.type === "website") && doc.metadata ? (
+            <PortfolioCard data={doc.metadata as PortfolioMetadata} />
           ) : doc.rawText ? (
             <>
               {/* Show profile info (strip README content from display) */}
@@ -323,9 +346,9 @@ export function DocumentManager({ onDocumentsChange }: { onDocumentsChange?: () 
                 {docs.find((d) => d.type === "github")?.title}
               </span>
               <Badge variant="outline" className="text-[10px] text-green-600">Connected</Badge>
-              {docs.find((d) => d.type === "github")?.metadata?.pace.label && (
+              {(docs.find((d) => d.type === "github")?.metadata as GitHubProfileData | undefined)?.pace?.label && (
                 <Badge className="bg-primary/10 text-primary border-0 text-[10px]">
-                  {docs.find((d) => d.type === "github")?.metadata?.pace.label}
+                  {(docs.find((d) => d.type === "github")?.metadata as GitHubProfileData | undefined)?.pace?.label}
                 </Badge>
               )}
             </div>
