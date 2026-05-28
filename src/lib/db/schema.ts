@@ -26,7 +26,7 @@ const vector = customType<{ data: number[]; driverData: string }>({
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   avatarUrl: text("avatar_url"),
   avatarSource: text("avatar_source"),
   avatarOptions: jsonb("avatar_options").$type<{ google?: string; linkedin?: string; github?: string }>(),

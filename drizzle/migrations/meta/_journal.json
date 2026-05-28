@@ -15,6 +15,13 @@
       "when": 1779983050990,
       "tag": "0001_documents_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780002920174,
+      "tag": "0002_users_email_unique",
+      "breakpoints": true
     }
   ]
 }

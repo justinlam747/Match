@@ -71,6 +71,9 @@ export async function getApiUser() {
     .select()
     .from(users)
     .where(eq(users.email, user.email))
+    // Oldest first — deterministic even if duplicate rows somehow exist, so the
+    // same DB user is always resolved for a given email.
+    .orderBy(users.createdAt)
     .limit(1);
 
   if (existing.length > 0) {
@@ -103,9 +106,21 @@ export async function getApiUser() {
       avatarSource: googleAvatar ? "google" : null,
       avatarOptions: googleAvatar ? { google: googleAvatar } : {},
     })
+    // Concurrent first requests race to create the row; the unique email
+    // constraint makes losers no-op. Re-select to return the winning row.
+    .onConflictDoNothing()
     .returning();
 
-  return newUser;
+  if (newUser) return newUser;
+
+  const [winner] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, user.email))
+    .orderBy(users.createdAt)
+    .limit(1);
+
+  return winner ?? null;
 }
 
 export function unauthorized() {
