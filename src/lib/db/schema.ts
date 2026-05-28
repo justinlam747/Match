@@ -52,8 +52,8 @@ export const documents = pgTable("documents", {
   title: text("title").notNull(),
   sourceUrl: text("source_url"),
   rawText: text("raw_text").notNull(),
-  // Structured scrape data (e.g. parsed GitHub profile) for rich display.
-  metadata: jsonb("metadata").$type<GitHubProfileData>(),
+  // Structured scrape data (GitHub profile or portfolio/link preview) for rich display.
+  metadata: jsonb("metadata").$type<GitHubProfileData | PortfolioMetadata>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [index("documents_user_id_idx").on(t.userId)]);
 
@@ -196,6 +196,14 @@ export interface GitHubProfileData {
     lastActive: string | null; // most recent repo push timestamp (ISO)
   };
   pace: { label: string; detail: string };
+}
+
+// Link-preview metadata scraped from portfolio / website URLs (OpenGraph + title).
+export interface PortfolioMetadata {
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  siteName: string | null;
 }
 
 export interface ParsedResume {

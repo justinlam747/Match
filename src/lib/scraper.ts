@@ -2,7 +2,16 @@
  * Lightweight URL scraper — extracts meaningful text from web pages.
  * Used for portfolio sites, GitHub profiles, etc.
  */
-import type { GitHubProfileData } from "@/lib/db/schema";
+import type { GitHubProfileData, PortfolioMetadata } from "@/lib/db/schema";
+
+// Extract a <meta> content by og: property or name (attribute order varies).
+function metaTag(html: string, key: string): string | null {
+  const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const a = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${esc}["'][^>]*content=["']([^"']*)["']`, "i"));
+  if (a?.[1]) return a[1].trim() || null;
+  const b = html.match(new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]*(?:property|name)=["']${esc}["']`, "i"));
+  return b?.[1]?.trim() || null;
+}
 
 /**
  * Validates that a URL is external (not targeting internal/private networks).
@@ -37,6 +46,7 @@ export function validateExternalUrl(url: string): void {
 export async function scrapeUrl(url: string): Promise<{
   title: string;
   text: string;
+  meta: PortfolioMetadata;
 } | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
@@ -61,6 +71,18 @@ export async function scrapeUrl(url: string): Promise<{
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch?.[1]?.trim() || new URL(url).hostname;
 
+    // Link-preview metadata (OpenGraph + fallbacks)
+    let image = metaTag(html, "og:image") || metaTag(html, "twitter:image");
+    if (image && image.startsWith("/")) {
+      try { image = new URL(image, url).href; } catch {}
+    }
+    const meta: PortfolioMetadata = {
+      title: metaTag(html, "og:title") || title,
+      description: metaTag(html, "og:description") || metaTag(html, "description"),
+      image,
+      siteName: metaTag(html, "og:site_name"),
+    };
+
     // Strip tags, scripts, styles
     const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
@@ -74,7 +96,10 @@ export async function scrapeUrl(url: string): Promise<{
       .trim()
       .slice(0, 5000);
 
-    return text ? { title, text } : null;
+    // Fall back to the preview description so portfolios with little inline
+    // text (JS-rendered sites) still produce usable content.
+    const finalText = text || meta.description || meta.title || "";
+    return finalText ? { title, text: finalText, meta } : null;
   } catch {
     clearTimeout(timeout);
     return null;

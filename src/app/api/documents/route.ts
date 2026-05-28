@@ -4,7 +4,7 @@ import { documents, users } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 import { scrapeUrl, scrapeGitHub, validateExternalUrl } from "@/lib/scraper";
-import type { GitHubProfileData } from "@/lib/db/schema";
+import type { GitHubProfileData, PortfolioMetadata } from "@/lib/db/schema";
 
 // GET — list user's documents
 export async function GET() {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       let type = docType || "website";
       let result: { title: string; text: string } | null = null;
       let profileAvatarUrl: string | undefined;
-      let metadata: GitHubProfileData | null = null;
+      let metadata: GitHubProfileData | PortfolioMetadata | null = null;
 
       if (url.includes("github.com/")) {
         type = "github";
@@ -77,7 +77,9 @@ export async function POST(request: NextRequest) {
         }
       } else {
         type = docType || "portfolio";
-        result = await scrapeUrl(url);
+        const r = await scrapeUrl(url);
+        result = r;
+        metadata = r?.meta ?? null;
       }
 
       if (!result || !result.text) {
