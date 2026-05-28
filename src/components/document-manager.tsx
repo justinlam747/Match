@@ -161,7 +161,6 @@ function DocEntry({ doc, label, onDelete }: { doc: Doc; label: string; onDelete:
 export function DocumentManager({ onDocumentsChange }: { onDocumentsChange?: () => void }) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [github, setGithub] = useState("");
-  const [linkedin, setLinkedin] = useState("");
   const [otherUrl, setOtherUrl] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -270,44 +269,6 @@ export function DocumentManager({ onDocumentsChange }: { onDocumentsChange?: () 
                 disabled={loading === "github" || !github.trim()}
               >
                 {loading === "github" ? "..." : "Add"}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* LinkedIn */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#0A66C2] flex items-center justify-center shrink-0">
-            <LinkedInIcon className="w-4 h-4 text-white" />
-          </div>
-          {hasType("linkedin") ? (
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {docs.find((d) => d.type === "linkedin")?.title}
-              </span>
-              <Badge variant="outline" className="text-[10px] text-green-600">Connected</Badge>
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center gap-2">
-              <Input
-                value={linkedin}
-                onChange={(e) => setLinkedin(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addUrl(linkedin, "linkedin", setLinkedin)}
-                placeholder="linkedin.com/in/username"
-                className="h-9 text-sm flex-1"
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9"
-                onClick={() => addUrl(
-                  linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin.replace(/^@/, "")}`,
-                  "linkedin",
-                  setLinkedin
-                )}
-                disabled={loading === "linkedin" || !linkedin.trim()}
-              >
-                {loading === "linkedin" ? "..." : "Add"}
               </Button>
             </div>
           )}

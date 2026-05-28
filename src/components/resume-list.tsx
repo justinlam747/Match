@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ResumeViewer } from "@/components/resume-viewer";
 
 interface ResumeItem {
   id: string;
@@ -20,6 +21,7 @@ export function ResumeList({
   const [list, setList] = useState<ResumeItem[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [viewing, setViewing] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/resumes")
@@ -136,6 +138,12 @@ export function ResumeList({
           {editing !== r.id && (
             <div className="flex items-center gap-1 shrink-0">
               <button
+                onClick={() => setViewing(r.id)}
+                className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5"
+              >
+                View
+              </button>
+              <button
                 onClick={() => {
                   setEditing(r.id);
                   setEditName(r.name);
@@ -156,6 +164,12 @@ export function ResumeList({
           )}
         </div>
       ))}
+
+      <ResumeViewer
+        resumeId={viewing}
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+      />
     </div>
   );
 }

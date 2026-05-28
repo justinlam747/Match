@@ -71,32 +71,6 @@ export async function POST(request: NextRequest) {
           // It's a repo or other page — scrape as regular URL
           result = await scrapeUrl(url);
         }
-      } else if (url.includes("linkedin.com/")) {
-        type = "linkedin";
-        // LinkedIn blocks scraping — save the URL as a profile reference
-        const linkedinUsername = url.match(/\/in\/([^/]+)/)?.[1] || "profile";
-        result = {
-          title: `LinkedIn: ${linkedinUsername}`,
-          text: `LinkedIn profile: ${url}`,
-        };
-        // Try to extract LinkedIn profile photo from og:image
-        try {
-          const ogRes = await fetch(url, {
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; bot)" },
-            redirect: "follow",
-            signal: AbortSignal.timeout(5000),
-          });
-          if (ogRes.ok) {
-            const html = await ogRes.text();
-            const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
-            if (ogMatch?.[1] && !ogMatch[1].includes("static.licdn.com/sc/h/")) {
-              // Filter out LinkedIn's default/generic images
-              profileAvatarUrl = ogMatch[1];
-            }
-          }
-        } catch {
-          // LinkedIn scraping is best-effort
-        }
       } else {
         type = docType || "portfolio";
         result = await scrapeUrl(url);

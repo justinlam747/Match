@@ -4,10 +4,31 @@ import { resumes } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 
-// GET — list all resumes for user
-export async function GET() {
+// GET — list all resumes for user, or a single resume's full content (?id=)
+export async function GET(request: NextRequest) {
   const user = await getApiUser();
   if (!user) return unauthorized();
+
+  const id = new URL(request.url).searchParams.get("id");
+
+  if (id) {
+    const [resume] = await db
+      .select({
+        id: resumes.id,
+        name: resumes.name,
+        rawText: resumes.rawText,
+        parsedData: resumes.parsedData,
+        createdAt: resumes.createdAt,
+      })
+      .from(resumes)
+      .where(and(eq(resumes.id, id), eq(resumes.userId, user.id)))
+      .limit(1);
+
+    if (!resume) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json({ resume });
+  }
 
   const list = await db
     .select({
