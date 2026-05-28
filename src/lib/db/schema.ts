@@ -52,6 +52,8 @@ export const documents = pgTable("documents", {
   title: text("title").notNull(),
   sourceUrl: text("source_url"),
   rawText: text("raw_text").notNull(),
+  // Structured scrape data (e.g. parsed GitHub profile) for rich display.
+  metadata: jsonb("metadata").$type<GitHubProfileData>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [index("documents_user_id_idx").on(t.userId)]);
 
@@ -170,6 +172,31 @@ export const userProfiles = pgTable("user_profiles", {
 export type UserProfileRow = typeof userProfiles.$inferSelect;
 
 // Types
+
+export interface GitHubProfileData {
+  login: string;
+  name: string | null;
+  bio: string | null;
+  followers: number;
+  publicRepos: number;
+  totalStars: number;
+  languages: string[];
+  topRepos: {
+    name: string;
+    description: string | null;
+    language: string | null;
+    stars: number;
+    url: string;
+  }[];
+  readmeCount: number;
+  activity: {
+    activeDays30: number; // distinct days with public push activity in the last 30 days
+    pushEvents30: number; // push events in the last 30 days
+    reposPushed90: number; // repos pushed to in the last 90 days
+    lastActive: string | null; // most recent repo push timestamp (ISO)
+  };
+  pace: { label: string; detail: string };
+}
 
 export interface ParsedResume {
   name: string;

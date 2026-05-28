@@ -4,6 +4,7 @@ import { documents, users } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
 import { scrapeUrl, scrapeGitHub, validateExternalUrl } from "@/lib/scraper";
+import type { GitHubProfileData } from "@/lib/db/schema";
 
 // GET — list user's documents
 export async function GET() {
@@ -17,6 +18,7 @@ export async function GET() {
       title: documents.title,
       sourceUrl: documents.sourceUrl,
       rawText: documents.rawText,
+      metadata: documents.metadata,
       createdAt: documents.createdAt,
     })
     .from(documents)
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
       let type = docType || "website";
       let result: { title: string; text: string } | null = null;
       let profileAvatarUrl: string | undefined;
+      let metadata: GitHubProfileData | null = null;
 
       if (url.includes("github.com/")) {
         type = "github";
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
           const ghResult = await scrapeGitHub(username);
           result = ghResult;
           profileAvatarUrl = ghResult?.avatarUrl;
+          metadata = ghResult?.data ?? null;
         } else {
           // It's a repo or other page — scrape as regular URL
           result = await scrapeUrl(url);
@@ -91,12 +95,14 @@ export async function POST(request: NextRequest) {
           title: result.title,
           sourceUrl: url,
           rawText: result.text,
+          metadata,
         })
         .returning({
           id: documents.id,
           type: documents.type,
           title: documents.title,
           sourceUrl: documents.sourceUrl,
+          metadata: documents.metadata,
           createdAt: documents.createdAt,
         });
 
