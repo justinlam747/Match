@@ -56,6 +56,9 @@ export interface MatchResult {
   seniorityAlignment: SeniorityAlignment;
   archetype: RoleArchetype | null;
   grade: Grade;
+  // Hiring-excluded 0–100 score the letter grade is curved against (relative to
+  // the strongest match in the batch). The final grade is assigned in the route.
+  gradeBasis: number;
   gradeBreakdown: GradeBreakdown;
   recommendation: string;
 }
@@ -397,8 +400,9 @@ export async function scoreMatch(
   }
 
   const overallScore = computeOverall(scores);
-  // Grade excludes hiring (see computeGradeBasis) and uses the redistributed curve.
-  const grade = gradeFromOverall(computeGradeBasis(scores), 100);
+  const gradeBasis = computeGradeBasis(scores);
+  // Per-match fallback grade; the route re-grades on a curve relative to the batch.
+  const grade = gradeFromOverall(gradeBasis, 100);
   const recommendation = gradeRecommendation(grade);
   const gradeBreakdown: GradeBreakdown = {
     tech: gradeFromDimension(scores.techScore),
@@ -429,6 +433,7 @@ export async function scoreMatch(
     seniorityAlignment: scores.seniorityAlignment,
     archetype,
     grade,
+    gradeBasis,
     gradeBreakdown,
     recommendation,
   };

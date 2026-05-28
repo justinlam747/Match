@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { scoreMatchesBatch } from "@/lib/ai/score-match";
+import { gradeFromOverall } from "@/lib/ai/grade-calculator";
 import { describeAiError } from "@/lib/ai/client";
 import { tryReuseScoredMatches } from "@/lib/ai/match-score-cache";
 import { getApiUser, unauthorized } from "@/lib/supabase/api-auth";
@@ -169,6 +170,8 @@ function heuristicScores(
     hiringScore: buildingScore, // stored as "building signal" in the hiringScore column
     stageScore,
     explanation: explanationParts.join(". ") + ".",
+    // Heuristic overall already excludes hiring, so it is its own grade basis.
+    gradeBasis: overallScore,
   };
 }
 
@@ -320,6 +323,7 @@ export async function POST(request: NextRequest) {
       northStarScore?: number;
       archetype?: RoleArchetype | null;
       grade?: Grade;
+      gradeBasis?: number;
       gradeBreakdown?: GradeBreakdown;
     };
     let results: ScoredRow[];
@@ -383,6 +387,14 @@ export async function POST(request: NextRequest) {
     }
 
     results.sort((a, b) => b.overallScore - a.overallScore);
+
+    // Grade on a curve relative to the strongest match in this batch: the top
+    // match becomes an A and the rest are distributed down from there, so grades
+    // aren't all clustered at the bottom of an absolute scale.
+    const maxBasis = Math.max(1, ...results.map((r) => r.gradeBasis ?? r.overallScore));
+    for (const r of results) {
+      r.grade = gradeFromOverall(r.gradeBasis ?? r.overallScore, maxBasis);
+    }
 
     // Clear old scores and store new — in a transaction with batch insert
     await db.transaction(async (tx) => {
